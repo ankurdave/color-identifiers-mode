@@ -80,3 +80,5 @@ colored as an identifier.")
                                        'face `(:foreground ,hex)))
                   (goto-char (match-end 0)))))
           (search-failed nil))))))
+
+(provide 'color-identifiers-mode)
