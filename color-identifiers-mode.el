@@ -32,7 +32,7 @@
   "Alist of major modes and the ways to distinguish identifiers in those modes.
 
 The value of each cons cell has the form (IDENTIFIER-RE (IDENTIFIER-FACE...)).
-IDENTIFIER-RE is a regexp matching identifiers.
+IDENTIFIER-RE is a regexp whose first capture group matches identifiers.
 If a major mode decorates identifiers with a particular face, include it as an
 IDENTIFIER-FACE for that mode. An IDENTIFIER-FACE of nil means to include all
 unfontified words.
@@ -43,13 +43,13 @@ colored as an identifier.")
 (when (require 'scala-mode2 nil t)
   (add-to-list
    'color-identifiers:modes-alist
-   `(scala-mode . (,(concat "\\b" scala-syntax:varid-re)
+   `(scala-mode . (,(concat "[^.][[:space:]]*\\b\\(" scala-syntax:varid-re "\\)\\b[[:space:]]*[^(]")
                    (nil scala-font-lock:var-face font-lock-variable-name-face)))))
 
 (when (require 'js nil t)
   (add-to-list
    'color-identifiers:modes-alist
-   `(js-mode . (,js--name-re (nil font-lock-variable-name-face)))))
+   `(js-mode . (,(concat "\\(" js--name-re "\\)") (nil font-lock-variable-name-face)))))
 
 (defun color-identifiers:color-identifier (str)
   (let* ((hash (sxhash str))
@@ -67,18 +67,18 @@ colored as an identifier.")
             (while (< (point) limit)
               (if (not (memq (get-text-property (point) 'face) identifier-faces))
                   (goto-char (next-property-change (point) nil limit))
-                (if (not (looking-at scala-syntax:varid-re))
+                (if (not (looking-at identifier-re))
                     (progn
                       (forward-char)
                       (re-search-forward identifier-re limit)
                       (goto-char (match-beginning 0)))
                   ;; Colorize the text according to its name
                   (let* ((string (buffer-substring
-                                  (match-beginning 0) (match-end 0)))
+                                  (match-beginning 1) (match-end 1)))
                          (hex (color-identifiers:color-identifier string)))
-                    (put-text-property (match-beginning 0) (match-end 0)
+                    (put-text-property (match-beginning 1) (match-end 1)
                                        'face `(:foreground ,hex)))
-                  (goto-char (match-end 0)))))
+                  (goto-char (match-end 1)))))
           (search-failed nil))))))
 
 (provide 'color-identifiers-mode)
