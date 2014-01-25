@@ -51,6 +51,11 @@ colored as an identifier.")
    'color-identifiers:modes-alist
    `(js-mode . (,js--name-re (nil font-lock-variable-name-face)))))
 
+(defun color-identifiers:color-identifier (str)
+  (let* ((hash (sxhash str))
+         (hue (/ (% (abs hash) 100) 100.0)))
+    (apply 'color-rgb-to-hex (color-hsl-to-rgb hue 0.8 0.8))))
+
 (defun color-identifiers:colorize (limit)
   "Colorize all unfontified identifiers from point to LIMIT."
   (let ((entry (assoc major-mode color-identifiers:modes-alist)))
@@ -68,10 +73,9 @@ colored as an identifier.")
                       (re-search-forward identifier-re limit)
                       (goto-char (match-beginning 0)))
                   ;; Colorize the text according to its name
-                  (let* ((hash (sxhash (buffer-substring
-                                        (match-beginning 0) (match-end 0))))
-                         (hue (/ (% (abs hash) 100) 100.0))
-                         (hex (apply 'color-rgb-to-hex (color-hsl-to-rgb hue 0.8 0.8))))
+                  (let* ((string (buffer-substring
+                                  (match-beginning 0) (match-end 0)))
+                         (hex (color-identifiers:color-identifier string)))
                     (put-text-property (match-beginning 0) (match-end 0)
                                        'face `(:foreground ,hex)))
                   (goto-char (match-end 0)))))
