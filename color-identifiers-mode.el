@@ -28,24 +28,51 @@
 
 (defface color-identifiers:no-op-face nil nil)
 
+(defvar color-identifiers:modes-alist nil
+  "Alist of major modes and the ways to distinguish identifiers in those modes.
+
+The value of each cons cell has the form (IDENTIFIER-RE (IDENTIFIER-FACE...)).
+IDENTIFIER-RE is a regexp matching identifiers.
+If a major mode decorates identifiers with a particular face, include it as an
+IDENTIFIER-FACE for that mode. An IDENTIFIER-FACE of nil means to include all
+unfontified words.
+
+A word must match IDENTIFIER-RE and be decorated with an IDENTIFIER-FACE to be
+colored as an identifier.")
+
+(when (require 'scala-mode2 nil t)
+  (add-to-list
+   'color-identifiers:modes-alist
+   `(scala-mode . (,(concat "\\b" scala-syntax:varid-re)
+                   (nil scala-font-lock:var-face font-lock-variable-name-face)))))
+
+(when (require 'js nil t)
+  (add-to-list
+   'color-identifiers:modes-alist
+   `(js-mode . (,js--name-re (nil font-lock-variable-name-face)))))
+
 (defun color-identifiers:colorize (limit)
   "Colorize all unfontified identifiers from point to LIMIT."
-  ;; Skip forward to the next appropriate text to colorize
-  (condition-case nil
-      (while (< (point) limit)
-        (if (not (memq (get-text-property (point) 'face) '(nil scala-font-lock:var-face)))
-            (goto-char (next-property-change (point) nil limit))
-          (if (not (looking-at scala-syntax:varid-re))
-              (progn
-                (forward-char)
-                (re-search-forward (concat "\\b[" scala-syntax:lower-group "]") limit)
-                (goto-char (match-beginning 0)))
-            ;; Colorize the text according to its name
-            (let* ((hash (sxhash (buffer-substring
-                                  (match-beginning 0) (match-end 0))))
-                   (hue (/ (% (abs hash) 100) 100.0))
-                   (hex (apply 'color-rgb-to-hex (color-hsl-to-rgb hue 0.8 0.8))))
-              (put-text-property (match-beginning 0) (match-end 0)
-                                 'face `(:foreground ,hex)))
-            (goto-char (match-end 0)))))
-    (search-failed nil)))
+  (let ((entry (assoc major-mode color-identifiers:modes-alist)))
+    (when entry
+      (let ((identifier-re (cadr entry))
+            (identifier-faces (caddr entry)))
+        ;; Skip forward to the next appropriate text to colorize
+        (condition-case nil
+            (while (< (point) limit)
+              (if (not (memq (get-text-property (point) 'face) identifier-faces))
+                  (goto-char (next-property-change (point) nil limit))
+                (if (not (looking-at scala-syntax:varid-re))
+                    (progn
+                      (forward-char)
+                      (re-search-forward identifier-re limit)
+                      (goto-char (match-beginning 0)))
+                  ;; Colorize the text according to its name
+                  (let* ((hash (sxhash (buffer-substring
+                                        (match-beginning 0) (match-end 0))))
+                         (hue (/ (% (abs hash) 100) 100.0))
+                         (hex (apply 'color-rgb-to-hex (color-hsl-to-rgb hue 0.8 0.8))))
+                    (put-text-property (match-beginning 0) (match-end 0)
+                                       'face `(:foreground ,hex)))
+                  (goto-char (match-end 0)))))
+          (search-failed nil))))))
