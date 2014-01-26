@@ -5,7 +5,7 @@
 ;; Author: Ankur Dave <ankurdave@gmail.com>
 ;; Url: https://github.com/ankurdave/color-identifiers-mode
 ;; Created: 24 Jan 2014
-;; Version: 1.0
+;; Version: 1.1
 ;; Keywords: faces, languages
 
 ;; This file is not a part of GNU Emacs.
@@ -31,11 +31,11 @@
 
 ;; Currently it only supports js-mode and scala-mode2, but support for other
 ;; modes is forthcoming.  You can add support for your favorite mode by modifying
-;; `color-identifiers:modes-alist`.
-
-(require 'color)
+;; `color-identifiers:modes-alist'.
 
 ;;; Code:
+
+(require 'color)
 
 ;;;###autoload
 (define-minor-mode color-identifiers-mode
@@ -43,9 +43,19 @@
   :init-value nil
   :lighter " ColorIds"
   (if color-identifiers-mode
-      (font-lock-add-keywords nil '((color-identifiers:colorize . default)) t)
+      (progn
+        (font-lock-add-keywords nil '((color-identifiers:colorize . default)) t)
+        (unless color-identifiers:timer
+          (setq color-identifiers:timer
+                (run-with-idle-timer 0.2 t 'color-identifiers:refresh))))
+    (cancel-timer color-identifiers:timer)
+    (setq color-identifiers:timer nil)
     (font-lock-remove-keywords nil '((color-identifiers:colorize . default))))
   (font-lock-fontify-buffer))
+
+(add-to-list 'font-lock-extra-managed-props 'color-identifiers:fontified)
+
+(defvar color-identifiers:timer nil)
 
 (defvar color-identifiers:modes-alist nil
   "Alist of major modes and the ways to distinguish identifiers in those modes.
@@ -76,6 +86,57 @@ unfontified words will be considered.")
  'color-identifiers:modes-alist
  `(ruby-mode . ("[^.][[:space:]]*" "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)" (nil))))
 
+(defvar color-identifiers:permanent-colors
+  '((0.0 1.0)                           ; red
+    (0.1 1.0)                           ; orange
+    (0.2 1.0)                           ; yellow
+    (0.4 1.0)                           ; green
+    (0.6 1.0)                           ; blue-green
+    (0.7 1.0)                           ; teal
+    (0.78 1.0)                          ; blue
+    (0.9 1.0)                           ; deep blue
+    (0.96 1.0)                           ; purple
+    )
+  "Permanent colors applied after a GC pass, as hue-saturation pairs.
+Saturation may be rescaled to match the theme.")
+
+(defvar color-identifiers:temp-colors
+  '((0.0 0.0)                           ; salmon
+    (0.1 0.0)                           ; light orange
+    (0.4 0.0)                           ; light green
+    (0.6 0.0)                           ; light blue-green
+    (0.7 0.0)                           ; baby blue
+    (0.78 0.0)                          ; light blue
+    (0.9 0.0)                           ; lavender-y blue
+    (1.0 0.0)                           ; light purple
+    )
+  "Temporary colors for newly-created identifiers, as hue-saturation pairs.
+Saturation may be rescaled to match the theme.")
+
+(defvar color-identifiers:color-index-for-identifier nil
+  "Alist of identifier-index pairs for internal use.
+The index refers to `color-identifiers:permanent-colors'.")
+
+(defun color-identifiers:refresh ()
+  "Refresh `color-identifiers:color-index-for-identifier' from current buffer."
+  (interactive)
+  (when color-identifiers-mode
+    (save-excursion
+      (goto-char (point-min))
+      (setq color-identifiers:color-index-for-identifier nil)
+      (let ((i 0)
+            (n (length color-identifiers:permanent-colors)))
+        (color-identifiers:scan-identifiers
+         (lambda (start end)
+           (let ((identifier (buffer-substring-no-properties start end)))
+             (unless (assoc-string identifier color-identifiers:color-index-for-identifier)
+               (push (cons identifier (% i n))
+                     color-identifiers:color-index-for-identifier)
+               (setq i (1+ i)))))
+         (point-max)
+         (lambda () (not (input-pending-p)))))
+      (font-lock-fontify-buffer))))
+
 (defun color-identifiers:attribute-luminance (attribute)
   "Find the luminance of the specified ATTRIBUTE on the default face."
   (nth 2
@@ -83,20 +144,35 @@ unfontified words will be considered.")
               (color-name-to-rgb
                (face-attribute 'default attribute)))))
 
-(defun color-identifiers:color-identifier (identifier)
-  "Generate the hex color for IDENTIFIER."
-  (let* ((hash (sxhash identifier))
-         (hue (/ (% (abs hash) 100) 100.0))
-         (background-luminance (color-identifiers:attribute-luminance :background))
-         (foreground-luminance (color-identifiers:attribute-luminance :foreground))
-         (contrast (abs (- background-luminance foreground-luminance)))
-         (saturation contrast)
-         (luminance (max 0.25 (min 0.75 foreground-luminance))))
+(defun color-identifiers:make-color (pair saturation)
+  "Generate a hex color from a hue-saturation PAIR and an absolute SATURATION."
+  (let*
+      ((hue (car pair))
+       (background-luminance (color-identifiers:attribute-luminance :background))
+       (foreground-luminance (color-identifiers:attribute-luminance :foreground))
+       (contrast (abs (- background-luminance foreground-luminance)))
+       (luminance (max 0.8 contrast)))
     (apply 'color-rgb-to-hex (color-hsl-to-rgb hue saturation luminance))))
 
-(defun color-identifiers:colorize (limit)
-  "Color identifiers in the current buffer from point to LIMIT.
-Identifiers to color are specified by `color-identifiers:modes-alist`."
+(defun color-identifiers:color-identifier (identifier)
+  "Look up or generate the hex color for IDENTIFIER.
+IDENTIFIER is looked up in `color-identifiers:color-index-for-identifier' and
+generated if not present there."
+  (let ((entry (assoc-string identifier color-identifiers:color-index-for-identifier)))
+    (if entry
+        (color-identifiers:make-color
+         (nth (cdr entry) color-identifiers:permanent-colors)
+         0.9)
+      (let* ((hash (sxhash identifier))
+             (idx (% (abs hash) (length color-identifiers:temp-colors)))
+             (hue-sat (nth idx color-identifiers:temp-colors))
+             (saturation 0.5))
+        (color-identifiers:make-color hue-sat saturation)))))
+
+(defun color-identifiers:scan-identifiers (fn limit &optional continue-p)
+  "Run FN on all identifiers from point up to LIMIT.
+Identifiers are defined by `color-identifiers:modes-alist'.
+If supplied, iteration only continues if CONTINUE-P evaluates to true."
   (let ((entry (assoc major-mode color-identifiers:modes-alist)))
     (when entry
       (let ((identifier-context-re (cadr entry))
@@ -105,10 +181,12 @@ Identifiers to color are specified by `color-identifiers:modes-alist`."
              (if (functionp (cadddr entry))
                  (funcall (cadddr entry))
                (cadddr entry))))
-        ;; Skip forward to the next appropriate text to colorize
+        ;; Skip forward to the next identifier that matches all three conditions
         (condition-case nil
-            (while (< (point) limit)
-              (if (not (memq (get-text-property (point) 'face) identifier-faces))
+            (while (and (< (point) limit)
+                        (if continue-p (funcall continue-p) t))
+              (if (not (or (memq (get-text-property (point) 'face) identifier-faces)
+                           (get-text-property (point) 'color-identifiers:fontified)))
                   (goto-char (next-property-change (point) nil limit))
                 (if (not (and (looking-back identifier-context-re)
                               (looking-at identifier-re)))
@@ -116,14 +194,19 @@ Identifiers to color are specified by `color-identifiers:modes-alist`."
                       (forward-char)
                       (re-search-forward identifier-re limit)
                       (goto-char (match-beginning 0)))
-                  ;; Colorize the text according to its name
-                  (let* ((string (buffer-substring
-                                  (match-beginning 1) (match-end 1)))
-                         (hex (color-identifiers:color-identifier string)))
-                    (put-text-property (match-beginning 1) (match-end 1)
-                                       'face `(:foreground ,hex)))
+                  ;; Found an identifier. Run `fn' on it
+                  (funcall fn (match-beginning 1) (match-end 1))
                   (goto-char (match-end 1)))))
           (search-failed nil))))))
+
+(defun color-identifiers:colorize (limit)
+  (color-identifiers:scan-identifiers
+   (lambda (start end)
+     (let* ((identifier (buffer-substring-no-properties start end))
+            (hex (color-identifiers:color-identifier identifier)))
+       (put-text-property start end 'face `(:foreground ,hex))
+       (put-text-property start end 'color-identifiers:fontified t)))
+   limit))
 
 (provide 'color-identifiers-mode)
 
