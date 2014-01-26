@@ -72,6 +72,10 @@ unfontified words will be considered.")
               "\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
               (nil font-lock-variable-name-face))))
 
+(add-to-list
+ 'color-identifiers:modes-alist
+ `(ruby-mode . ("[^.][[:space:]]*" "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)" (nil))))
+
 (defun color-identifiers:attribute-luminance (attribute)
   "Find the luminance of the specified ATTRIBUTE on the default face."
   (nth 2
