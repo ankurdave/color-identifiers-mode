@@ -86,27 +86,8 @@ unfontified words will be considered.")
  'color-identifiers:modes-alist
  `(ruby-mode . ("[^.][[:space:]]*" "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)" (nil))))
 
-(defvar color-identifiers:permanent-colors
-  '((0.0 1.0)                           ; red
-    (0.1 1.0)                           ; orange
-    (0.2 1.0)                           ; yellow
-    (0.4 1.0)                           ; green
-    (0.6 1.0)                           ; blue-green
-    (0.7 1.0)                           ; teal
-    (0.78 1.0)                          ; blue
-    (0.9 1.0)                           ; deep blue
-    (0.96 1.0)                          ; purple
-    (0.0 0.0)                           ; salmon
-    (0.1 0.0)                           ; light orange
-    (0.4 0.0)                           ; light green
-    (0.6 0.0)                           ; light blue-green
-    (0.7 0.0)                           ; baby blue
-    (0.78 0.0)                          ; light blue
-    (0.9 0.0)                           ; lavender-y blue
-    (1.0 0.0)                           ; light purple
-    )
-  "Permanent colors applied after a GC pass, as hue-saturation pairs.
-Saturation may be rescaled to match the theme.")
+(defvar color-identifiers:num-colors 8
+  "The number of different colors to generate.")
 
 (defvar color-identifiers:color-index-for-identifier nil
   "Alist of identifier-index pairs for internal use.
@@ -120,7 +101,7 @@ The index refers to `color-identifiers:permanent-colors'.")
       (goto-char (point-min))
       (setq color-identifiers:color-index-for-identifier nil)
       (let ((i 0)
-            (n (length color-identifiers:permanent-colors)))
+            (n color-identifiers:num-colors))
         (color-identifiers:scan-identifiers
          (lambda (start end)
            (let ((identifier (buffer-substring-no-properties start end)))
@@ -134,22 +115,22 @@ The index refers to `color-identifiers:permanent-colors'.")
 
 (defun color-identifiers:attribute-luminance (attribute)
   "Find the luminance of the specified ATTRIBUTE on the default face."
-  (nth 2
-       (apply 'color-rgb-to-hsl
+  (nth 0
+       (apply 'color-srgb-to-lab
               (color-name-to-rgb
                (face-attribute 'default attribute)))))
 
-(defun color-identifiers:make-color (pair)
-  "Generate a hex color from a hue-saturation PAIR."
-  (let*
-      ((hue (car pair))
-       (background-luminance (color-identifiers:attribute-luminance :background))
-       (foreground-luminance (color-identifiers:attribute-luminance :foreground))
-       (contrast (abs (- background-luminance foreground-luminance)))
-       (luminance (+ (max 0.2 (min 0.6 foreground-luminance))
-                     (* (cadr pair) 0.2)))
-       (saturation (* contrast 0.8)))
-    (apply 'color-rgb-to-hex (color-hsl-to-rgb hue saturation luminance))))
+(defun color-identifiers:make-color (i)
+  "Generate a hex color for color number i of `color-identifiers:num-colors'."
+  (let* ((foreground-luminance (color-identifiers:attribute-luminance :foreground))
+         (background-luminance (color-identifiers:attribute-luminance :background))
+         (L (min 80 (max 45 foreground-luminance)))
+         (contrast (abs (- foreground-luminance background-luminance)))
+         (chroma (min 60 (max 30 background-luminance)))
+         (hue (* (/ i (float color-identifiers:num-colors)) pi))
+         (a (* chroma (cos hue)))
+         (b (* chroma (sin hue))))
+    (apply 'color-rgb-to-hex (color-lab-to-srgb L a b))))
 
 (defun color-identifiers:color-identifier (identifier)
   "Look up or generate the hex color for IDENTIFIER.
@@ -157,8 +138,7 @@ IDENTIFIER is looked up in `color-identifiers:color-index-for-identifier' and
 generated if not present there."
   (let ((entry (assoc-string identifier color-identifiers:color-index-for-identifier)))
     (if entry
-        (color-identifiers:make-color
-         (nth (cdr entry) color-identifiers:permanent-colors))
+        (color-identifiers:make-color (cdr entry))
       nil)))
 
 (defun color-identifiers:scan-identifiers (fn limit &optional continue-p)
