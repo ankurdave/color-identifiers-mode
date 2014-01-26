@@ -139,14 +139,16 @@ The index refers to `color-identifiers:permanent-colors'.")
               (color-name-to-rgb
                (face-attribute 'default attribute)))))
 
-(defun color-identifiers:make-color (pair saturation)
-  "Generate a hex color from a hue-saturation PAIR and an absolute SATURATION."
+(defun color-identifiers:make-color (pair)
+  "Generate a hex color from a hue-saturation PAIR."
   (let*
       ((hue (car pair))
        (background-luminance (color-identifiers:attribute-luminance :background))
        (foreground-luminance (color-identifiers:attribute-luminance :foreground))
        (contrast (abs (- background-luminance foreground-luminance)))
-       (luminance (max 0.8 contrast)))
+       (luminance (+ (max 0.2 (min 0.6 foreground-luminance))
+                     (* (cadr pair) 0.2)))
+       (saturation (* contrast 0.8)))
     (apply 'color-rgb-to-hex (color-hsl-to-rgb hue saturation luminance))))
 
 (defun color-identifiers:color-identifier (identifier)
@@ -156,8 +158,7 @@ generated if not present there."
   (let ((entry (assoc-string identifier color-identifiers:color-index-for-identifier)))
     (if entry
         (color-identifiers:make-color
-         (nth (cdr entry) color-identifiers:permanent-colors)
-         0.9)
+         (nth (cdr entry) color-identifiers:permanent-colors))
       nil)))
 
 (defun color-identifiers:scan-identifiers (fn limit &optional continue-p)
