@@ -41,11 +41,9 @@
   :init-value nil
   :lighter " ColorIds"
   (if color-identifiers-mode
-      (font-lock-add-keywords nil '((color-identifiers:colorize . color-identifiers:no-op-face)) t)
-    (font-lock-remove-keywords nil '((color-identifiers:colorize . color-identifiers:no-op-face))))
+      (font-lock-add-keywords nil '((color-identifiers:colorize . default)) t)
+    (font-lock-remove-keywords nil '((color-identifiers:colorize . default))))
   (font-lock-fontify-buffer))
-
-(defface color-identifiers:no-op-face nil nil)
 
 (defvar color-identifiers:modes-alist nil
   "Alist of major modes and the ways to distinguish identifiers in those modes.
