@@ -58,19 +58,17 @@ IDENTIFIER-FACES is a list of faces with which the major mode decorates
 identifiers or a function returning such a list. If the list includes nil,
 unfontified words will be considered.")
 
-(when (require 'scala-mode2 nil t)
-  (add-to-list
-   'color-identifiers:modes-alist
-   `(scala-mode . ("[^.][[:space:]]*"
-                   ,(concat "\\b\\(" scala-syntax:varid-re "\\)\\b")
-                   (nil scala-font-lock:var-face font-lock-variable-name-face)))))
+(add-to-list
+ 'color-identifiers:modes-alist
+ `(scala-mode . ("[^.][[:space:]]*"
+                 "\\b\\([[:lower:]]\\([_]??[[:lower:][:upper:]\\$0-9]+\\)*\\(_+[#:<=>@!%&*+/?\\\\^|~-]+\\|_\\)?\\)\\b"
+                 (nil scala-font-lock:var-face font-lock-variable-name-face))))
 
-(when (require 'js nil t)
-  (add-to-list
-   'color-identifiers:modes-alist
-   `(js-mode . (nil
-                ,(concat "\\(" js--name-re "\\)")
-                (nil font-lock-variable-name-face)))))
+(add-to-list
+ 'color-identifiers:modes-alist
+ `(js-mode . (nil
+              "\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
+              (nil font-lock-variable-name-face))))
 
 (defun color-identifiers:color-identifier (str)
   (let* ((hash (sxhash str))
