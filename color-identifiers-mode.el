@@ -30,26 +30,30 @@
 
 (defvar color-identifiers:modes-alist nil
   "Alist of major modes and the ways to distinguish identifiers in those modes.
+The value of each cons cell provides three constraints for finding identifiers.
+A word must match all three constraints to be colored as an identifier. The
+value has the form (IDENTIFIER-CONTEXT-RE IDENTIFIER-RE IDENTIFIER-FACES).
 
-The value of each cons cell has the form (IDENTIFIER-RE (IDENTIFIER-FACE...)).
+IDENTIFIER-CONTEXT-RE is a regexp matching the text that must precede an
+identifier.
 IDENTIFIER-RE is a regexp whose first capture group matches identifiers.
-If a major mode decorates identifiers with a particular face, include it as an
-IDENTIFIER-FACE for that mode. An IDENTIFIER-FACE of nil means to include all
-unfontified words.
-
-A word must match IDENTIFIER-RE and be decorated with an IDENTIFIER-FACE to be
-colored as an identifier.")
+IDENTIFIER-FACES is a list of faces with which the major mode decorates
+identifiers or a function returning such a list. If the list includes nil,
+unfontified words will be considered.")
 
 (when (require 'scala-mode2 nil t)
   (add-to-list
    'color-identifiers:modes-alist
-   `(scala-mode . (,(concat "[^.][[:space:]]*\\b\\(" scala-syntax:varid-re "\\)\\b[[:space:]]*[^(]")
+   `(scala-mode . ("[^.][[:space:]]*"
+                   ,(concat "\\b\\(" scala-syntax:varid-re "\\)\\b")
                    (nil scala-font-lock:var-face font-lock-variable-name-face)))))
 
 (when (require 'js nil t)
   (add-to-list
    'color-identifiers:modes-alist
-   `(js-mode . (,(concat "\\(" js--name-re "\\)") (nil font-lock-variable-name-face)))))
+   `(js-mode . (nil
+                ,(concat "\\(" js--name-re "\\)")
+                (nil font-lock-variable-name-face)))))
 
 (defun color-identifiers:color-identifier (str)
   (let* ((hash (sxhash str))
@@ -60,14 +64,19 @@ colored as an identifier.")
   "Colorize all unfontified identifiers from point to LIMIT."
   (let ((entry (assoc major-mode color-identifiers:modes-alist)))
     (when entry
-      (let ((identifier-re (cadr entry))
-            (identifier-faces (caddr entry)))
+      (let ((identifier-context-re (cadr entry))
+            (identifier-re (caddr entry))
+            (identifier-faces
+             (if (functionp (cadddr entry))
+                 (funcall (cadddr entry))
+               (cadddr entry))))
         ;; Skip forward to the next appropriate text to colorize
         (condition-case nil
             (while (< (point) limit)
               (if (not (memq (get-text-property (point) 'face) identifier-faces))
                   (goto-char (next-property-change (point) nil limit))
-                (if (not (looking-at identifier-re))
+                (if (not (and (looking-back identifier-context-re)
+                              (looking-at identifier-re)))
                     (progn
                       (forward-char)
                       (re-search-forward identifier-re limit)
