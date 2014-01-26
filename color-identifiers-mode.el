@@ -70,13 +70,15 @@ unfontified words will be considered.")
               "\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
               (nil font-lock-variable-name-face))))
 
-(defun color-identifiers:color-identifier (str)
-  (let* ((hash (sxhash str))
+(defun color-identifiers:color-identifier (identifier)
+  "Generate the hex color for IDENTIFIER."
+  (let* ((hash (sxhash identifier))
          (hue (/ (% (abs hash) 100) 100.0)))
     (apply 'color-rgb-to-hex (color-hsl-to-rgb hue 0.8 0.8))))
 
 (defun color-identifiers:colorize (limit)
-  "Colorize all unfontified identifiers from point to LIMIT."
+  "Color identifiers in the current buffer from point to LIMIT.
+Identifiers to color are specified by `color-identifiers:modes-alist`."
   (let ((entry (assoc major-mode color-identifiers:modes-alist)))
     (when entry
       (let ((identifier-context-re (cadr entry))
