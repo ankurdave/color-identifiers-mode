@@ -26,14 +26,16 @@
 ;;; Commentary:
 
 ;; Color Identifiers is a minor mode for Emacs that highlights each source code
-;; identifier uniquely based on its name. It is inspired by a post by Evan
+;; identifier uniquely based on its name.  It is inspired by a post by Evan
 ;; Brooks: https://medium.com/p/3a6db2743a1e/
 
 ;; Currently it only supports js-mode and scala-mode2, but support for other
-;; modes is forthcoming. You can add support for your favorite mode by modifying
+;; modes is forthcoming.  You can add support for your favorite mode by modifying
 ;; `color-identifiers:modes-alist`.
 
 (require 'color)
+
+;;; Code:
 
 ;;;###autoload
 (define-minor-mode color-identifiers-mode
@@ -48,14 +50,14 @@
 (defvar color-identifiers:modes-alist nil
   "Alist of major modes and the ways to distinguish identifiers in those modes.
 The value of each cons cell provides three constraints for finding identifiers.
-A word must match all three constraints to be colored as an identifier. The
+A word must match all three constraints to be colored as an identifier.  The
 value has the form (IDENTIFIER-CONTEXT-RE IDENTIFIER-RE IDENTIFIER-FACES).
 
 IDENTIFIER-CONTEXT-RE is a regexp matching the text that must precede an
 identifier.
 IDENTIFIER-RE is a regexp whose first capture group matches identifiers.
 IDENTIFIER-FACES is a list of faces with which the major mode decorates
-identifiers or a function returning such a list. If the list includes nil,
+identifiers or a function returning such a list.  If the list includes nil,
 unfontified words will be considered.")
 
 (add-to-list
