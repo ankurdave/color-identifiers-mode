@@ -9,6 +9,8 @@ It picks colors adaptively to fit the theme:
 
 ![Different Themes](https://raw.github.com/ankurdave/color-identifiers-mode/gh-pages/themes.png)
 
+Use `M-x color-identifiers:regenerate-colors` after a theme change.
+
 ## Installation
 Color Identifiers is in [MELPA](https://github.com/milkypostman/melpa/pull/1416). First [set up MELPA](https://github.com/milkypostman/melpa#usage):
 
