@@ -72,11 +72,23 @@ unfontified words will be considered.")
               "\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
               (nil font-lock-variable-name-face))))
 
+(defun color-identifiers:attribute-luminance (attribute)
+  "Find the luminance of the specified ATTRIBUTE on the default face."
+  (nth 2
+       (apply 'color-rgb-to-hsl
+              (color-name-to-rgb
+               (face-attribute 'default attribute)))))
+
 (defun color-identifiers:color-identifier (identifier)
   "Generate the hex color for IDENTIFIER."
   (let* ((hash (sxhash identifier))
-         (hue (/ (% (abs hash) 100) 100.0)))
-    (apply 'color-rgb-to-hex (color-hsl-to-rgb hue 0.8 0.8))))
+         (hue (/ (% (abs hash) 100) 100.0))
+         (background-luminance (color-identifiers:attribute-luminance :background))
+         (foreground-luminance (color-identifiers:attribute-luminance :foreground))
+         (contrast (abs (- background-luminance foreground-luminance)))
+         (saturation contrast)
+         (luminance (max 0.25 (min 0.75 foreground-luminance))))
+    (apply 'color-rgb-to-hex (color-hsl-to-rgb hue saturation luminance))))
 
 (defun color-identifiers:colorize (limit)
   "Color identifiers in the current buffer from point to LIMIT.
