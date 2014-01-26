@@ -3,7 +3,7 @@ Color Identifiers is a minor mode for Emacs that highlights each source code ide
 
 Currently it only supports js-mode and [scala-mode2](https://github.com/hvesalai/scala-mode2), but support for other modes is forthcoming. You can add support for your favorite mode by modifying `color-identifiers:modes-alist`.
 
-![Demo of Color Identifiers Mode on Scala](https://raw.github.com/ankurdave/color-identifiers-mode/gh-pages/demo.gif)
+![Screenshot of Color Identifiers Mode on Scala](https://raw.github.com/ankurdave/color-identifiers-mode/gh-pages/demo-static.png)
 
 It picks colors adaptively to fit the theme:
 
