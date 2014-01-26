@@ -10,19 +10,25 @@ It picks colors adaptively to fit the theme:
 ![Different Themes](https://raw.github.com/ankurdave/color-identifiers-mode/gh-pages/themes.png)
 
 ## Installation
-Color Identifiers is in [MELPA](https://github.com/milkypostman/melpa/pull/1416). First [set up MELPA](https://github.com/milkypostman/melpa/pull/1416):
+Color Identifiers is in [MELPA](https://github.com/milkypostman/melpa/pull/1416). First [set up MELPA](https://github.com/milkypostman/melpa#usage):
 
-    (add-to-list 'package-archives
-                 '("melpa" . "http://melpa.milkbox.net/packages/") t)
-    (package-initialize)
-    (package-refresh-contents)
+```lisp
+(add-to-list 'package-archives
+             '("melpa" . "http://melpa.milkbox.net/packages/") t)
+(package-initialize)
+(package-refresh-contents)
+```
 
 Then install it:
 
-    (package-install 'color-identifiers-mode)
+```lisp
+(package-install 'color-identifiers-mode)
+```
 
 Finally, visit a Scala file and type `M-x color-identifiers-mode`.
 
 If you like it, enable it for all Scala files:
 
-    (add-hook 'scala-mode-hook 'color-identifiers-mode)
+```lisp
+(add-hook 'scala-mode-hook 'color-identifiers-mode)
+```
