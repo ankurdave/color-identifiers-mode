@@ -9,10 +9,13 @@
 
 ;;; Commentary:
 
-;; This package provides a minor mode to color identifiers based on their
-;; names, inspired by Evan Brooks: https://medium.com/p/3a6db2743a1e/. To
-;; activate it, type M-x color-identifiers-mode in a code buffer.  Currently
-;; only scala-mode is supported.
+;; Color Identifiers is a minor mode for Emacs that highlights each source code
+;; identifier uniquely based on its name. It is inspired by a post by Evan
+;; Brooks: https://medium.com/p/3a6db2743a1e/
+
+;; Currently it only supports js-mode and scala-mode2, but support for other
+;; modes is forthcoming. You can add support for your favorite mode by modifying
+;; `color-identifiers:modes-alist`.
 
 (require 'color)
 
@@ -91,3 +94,5 @@ unfontified words will be considered.")
           (search-failed nil))))))
 
 (provide 'color-identifiers-mode)
+
+;;; color-identifiers-mode.el ends here
