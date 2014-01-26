@@ -47,7 +47,7 @@
         (font-lock-add-keywords nil '((color-identifiers:colorize . default)) t)
         (unless color-identifiers:timer
           (setq color-identifiers:timer
-                (run-with-idle-timer 0.2 t 'color-identifiers:refresh))))
+                (run-with-idle-timer 0.5 t 'color-identifiers:refresh))))
     (cancel-timer color-identifiers:timer)
     (setq color-identifiers:timer nil)
     (font-lock-remove-keywords nil '((color-identifiers:colorize . default))))
@@ -95,13 +95,8 @@ unfontified words will be considered.")
     (0.7 1.0)                           ; teal
     (0.78 1.0)                          ; blue
     (0.9 1.0)                           ; deep blue
-    (0.96 1.0)                           ; purple
-    )
-  "Permanent colors applied after a GC pass, as hue-saturation pairs.
-Saturation may be rescaled to match the theme.")
-
-(defvar color-identifiers:temp-colors
-  '((0.0 0.0)                           ; salmon
+    (0.96 1.0)                          ; purple
+    (0.0 0.0)                           ; salmon
     (0.1 0.0)                           ; light orange
     (0.4 0.0)                           ; light green
     (0.6 0.0)                           ; light blue-green
@@ -110,7 +105,7 @@ Saturation may be rescaled to match the theme.")
     (0.9 0.0)                           ; lavender-y blue
     (1.0 0.0)                           ; light purple
     )
-  "Temporary colors for newly-created identifiers, as hue-saturation pairs.
+  "Permanent colors applied after a GC pass, as hue-saturation pairs.
 Saturation may be rescaled to match the theme.")
 
 (defvar color-identifiers:color-index-for-identifier nil
@@ -163,11 +158,7 @@ generated if not present there."
         (color-identifiers:make-color
          (nth (cdr entry) color-identifiers:permanent-colors)
          0.9)
-      (let* ((hash (sxhash identifier))
-             (idx (% (abs hash) (length color-identifiers:temp-colors)))
-             (hue-sat (nth idx color-identifiers:temp-colors))
-             (saturation 0.5))
-        (color-identifiers:make-color hue-sat saturation)))))
+      nil)))
 
 (defun color-identifiers:scan-identifiers (fn limit &optional continue-p)
   "Run FN on all identifiers from point up to LIMIT.
@@ -204,8 +195,9 @@ If supplied, iteration only continues if CONTINUE-P evaluates to true."
    (lambda (start end)
      (let* ((identifier (buffer-substring-no-properties start end))
             (hex (color-identifiers:color-identifier identifier)))
-       (put-text-property start end 'face `(:foreground ,hex))
-       (put-text-property start end 'color-identifiers:fontified t)))
+       (when hex
+         (put-text-property start end 'face `(:foreground ,hex))
+         (put-text-property start end 'color-identifiers:fontified t))))
    limit))
 
 (provide 'color-identifiers-mode)
