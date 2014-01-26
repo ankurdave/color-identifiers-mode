@@ -10,9 +10,19 @@ It picks colors adaptively to fit the theme:
 ![Different Themes](http://ankurdave.github.io/color-identifiers-mode/themes.png)
 
 ## Installation
-Color Identifiers is not in ELPA yet, so install it by cloning the repo and loading it in your Emacs init file:
+Color Identifiers is in [MELPA](https://github.com/milkypostman/melpa/pull/1416). First [set up MELPA](https://github.com/milkypostman/melpa/pull/1416):
 
-    $ git clone https://github.com/ankurdave/color-identifiers-mode.git
-    $ echo '(load "'$PWD'/color-identifiers-mode/color-identifiers-mode.el")' >> ~/.emacs
+    (add-to-list 'package-archives
+                 '("melpa" . "http://melpa.milkbox.net/packages/") t)
+    (package-initialize)
+    (package-refresh-contents)
 
-Then run Emacs, visit a Scala buffer, and type `M-x color-identifiers-mode`.
+Then install it:
+
+    (package-install 'color-identifiers-mode)
+
+Finally, visit a Scala file and type `M-x color-identifiers-mode`.
+
+If you like it, enable it for all Scala files:
+
+    (add-hook 'scala-mode-hook 'color-identifiers-mode)
