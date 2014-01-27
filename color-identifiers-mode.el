@@ -54,7 +54,8 @@
           (setq color-identifiers:timer
                 (run-with-idle-timer 10 t 'color-identifiers:refresh)))
         (ad-activate 'enable-theme))
-    (cancel-timer color-identifiers:timer)
+    (when color-identifiers:timer
+      (cancel-timer color-identifiers:timer))
     (setq color-identifiers:timer nil)
     (font-lock-remove-keywords nil '((color-identifiers:colorize . default)))
     (ad-deactivate 'enable-theme))
