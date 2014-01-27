@@ -158,10 +158,10 @@ The index refers to `color-identifiers:colors'.")
 
 (defun color-identifiers:attribute-luminance (attribute)
   "Find the HSL luminance of the specified ATTRIBUTE on the default face."
-  (nth 2
-       (apply 'color-rgb-to-hsl
-              (color-name-to-rgb
-               (face-attribute 'default attribute)))))
+  (let ((rgb (color-name-to-rgb (face-attribute 'default attribute))))
+    (if rgb
+	(nth 2 (apply 'color-rgb-to-hsl rgb))
+      0.5)))
 
 (defun color-identifiers:refresh ()
   "Refresh `color-identifiers:color-index-for-identifier' from current buffer."
