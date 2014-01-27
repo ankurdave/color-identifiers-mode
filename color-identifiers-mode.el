@@ -82,19 +82,19 @@ unfontified words will be considered.")
 (add-to-list
  'color-identifiers:modes-alist
  `(scala-mode . ("[^.][[:space:]]*"
-                 "\\b\\([[:lower:]]\\([_]??[[:lower:][:upper:]\\$0-9]+\\)*\\(_+[#:<=>@!%&*+/?\\\\^|~-]+\\|_\\)?\\)\\b"
+                 "\\_<\\([[:lower:]]\\([_]??[[:lower:][:upper:]\\$0-9]+\\)*\\(_+[#:<=>@!%&*+/?\\\\^|~-]+\\|_\\)?\\)"
                  (nil scala-font-lock:var-face font-lock-variable-name-face))))
 
 (add-to-list
  'color-identifiers:modes-alist
  `(js-mode . ("[^.][[:space:]]*"
-              "\\b\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)\\b"
+              "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
               (nil font-lock-variable-name-face))))
 
 (add-to-list
  'color-identifiers:modes-alist
  `(js2-mode . ("[^.][[:space:]]*"
-              "\\b\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)\\b"
+              "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
               (nil font-lock-variable-name-face js2-function-param))))
 
 (add-to-list
