@@ -157,19 +157,20 @@ The index refers to `color-identifiers:permanent-colors'.")
   (when color-identifiers-mode
     (save-excursion
       (goto-char (point-min))
-      (setq color-identifiers:color-index-for-identifier nil)
-      (let ((i 0)
-            (n color-identifiers:num-colors))
-        (color-identifiers:scan-identifiers
-         (lambda (start end)
-           (let ((identifier (buffer-substring-no-properties start end)))
-             (unless (assoc-string identifier color-identifiers:color-index-for-identifier)
-               (push (cons identifier (% i n))
-                     color-identifiers:color-index-for-identifier)
-               (setq i (1+ i)))))
-         (point-max)
-         (lambda () (not (input-pending-p)))))
-      (font-lock-fontify-buffer))))
+      (catch 'input-pending
+        (let ((i 0)
+              (n color-identifiers:num-colors)
+              (result nil))
+          (color-identifiers:scan-identifiers
+           (lambda (start end)
+             (let ((identifier (buffer-substring-no-properties start end)))
+               (unless (assoc-string identifier result)
+                 (push (cons identifier (% i n)) result)
+                 (setq i (1+ i)))))
+           (point-max)
+           (lambda () (if (input-pending-p) (throw 'input-pending nil) t)))
+          (setq color-identifiers:color-index-for-identifier result)
+          (font-lock-fontify-buffer))))))
 
 (defun color-identifiers:color-identifier (identifier)
   "Look up or generate the hex color for IDENTIFIER.
