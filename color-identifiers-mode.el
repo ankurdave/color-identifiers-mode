@@ -103,6 +103,12 @@ unfontified words will be considered.")
 (add-to-list
  'color-identifiers:modes-alist
  `(ruby-mode . ("[^.][[:space:]]*" "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)" (nil))))
+ 
+ (add-to-list
+ 'color-identifiers:modes-alist
+ `(python-mode . ("[^.][[:space:]]*"
+                  "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
+                  (nil font-lock-type-face font-lock-variable-name-face))))
 
 (defvar color-identifiers:num-colors 10
   "The number of different colors to generate.")
