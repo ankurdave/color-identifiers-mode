@@ -87,9 +87,15 @@ unfontified words will be considered.")
 
 (add-to-list
  'color-identifiers:modes-alist
- `(js-mode . (nil
-              "\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
+ `(js-mode . ("[^.][[:space:]]*"
+              "\\b\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)\\b"
               (nil font-lock-variable-name-face))))
+
+(add-to-list
+ 'color-identifiers:modes-alist
+ `(js2-mode . ("[^.][[:space:]]*"
+              "\\b\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)\\b"
+              (nil font-lock-variable-name-face js2-function-param))))
 
 (add-to-list
  'color-identifiers:modes-alist
@@ -198,6 +204,8 @@ If supplied, iteration only continues if CONTINUE-P evaluates to true."
             (while (and (< (point) limit)
                         (if continue-p (funcall continue-p) t))
               (if (not (or (memq (get-text-property (point) 'face) identifier-faces)
+                           (let ((flface-prop (get-text-property (point) 'font-lock-face)))
+                             (and flface-prop (memq flface-prop identifier-faces)))
                            (get-text-property (point) 'color-identifiers:fontified)))
                   (goto-char (next-property-change (point) nil limit))
                 (if (not (and (looking-back identifier-context-re)
