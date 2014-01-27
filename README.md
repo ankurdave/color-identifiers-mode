@@ -3,6 +3,8 @@ Color Identifiers is a minor mode for Emacs that highlights each source code ide
 
 Currently it only supports js-mode and [scala-mode2](https://github.com/hvesalai/scala-mode2), but support for other modes is forthcoming. You can add support for your favorite mode by modifying `color-identifiers:modes-alist`.
 
+[Check out the demo.](http://youtu.be/g4qsiAo2aac)
+
 ![Screenshot of Color Identifiers Mode on Scala](https://raw.github.com/ankurdave/color-identifiers-mode/gh-pages/demo-static.png)
 
 It picks colors adaptively to fit the theme:
@@ -15,9 +17,9 @@ Use `M-x color-identifiers:regenerate-colors` after a theme change.
 Color Identifiers is in [MELPA](https://github.com/milkypostman/melpa/pull/1416). First [set up MELPA](https://github.com/milkypostman/melpa#usage):
 
 ```lisp
+(package-initialize)
 (add-to-list 'package-archives
              '("melpa" . "http://melpa.milkbox.net/packages/") t)
-(package-initialize)
 (package-refresh-contents)
 ```
 
