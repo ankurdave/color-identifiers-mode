@@ -48,10 +48,11 @@
   (if color-identifiers-mode
       (progn
         (color-identifiers:regenerate-colors)
+        (color-identifiers:refresh)
         (font-lock-add-keywords nil '((color-identifiers:colorize . default)) t)
         (unless color-identifiers:timer
           (setq color-identifiers:timer
-                (run-with-idle-timer 0.5 t 'color-identifiers:refresh)))
+                (run-with-idle-timer 10 t 'color-identifiers:refresh)))
         (ad-activate 'enable-theme))
     (cancel-timer color-identifiers:timer)
     (setq color-identifiers:timer nil)
@@ -146,9 +147,13 @@ Colors are output to `color-identifiers:colors'."
                   (apply 'color-rgb-to-hex (apply 'color-lab-to-srgb lab)))
                 chosens))))
 
-(defvar color-identifiers:color-index-for-identifier nil
+(defvar-local color-identifiers:color-index-for-identifier nil
   "Alist of identifier-index pairs for internal use.
-The index refers to `color-identifiers:permanent-colors'.")
+The index refers to `color-identifiers:colors'.")
+
+(defvar-local color-identifiers:current-index 0
+  "Current color index for new identifiers, for internal use.
+The index refers to `color-identifiers:colors'.")
 
 (defun color-identifiers:attribute-luminance (attribute)
   "Find the HSL luminance of the specified ATTRIBUTE on the default face."
@@ -185,7 +190,12 @@ generated if not present there."
   (let ((entry (assoc-string identifier color-identifiers:color-index-for-identifier)))
     (if entry
         (nth (cdr entry) color-identifiers:colors)
-      nil)))
+      ;; If not present, make a temporary color using the rotating index
+      (push (cons identifier (% color-identifiers:current-index
+                                (length color-identifiers:colors)))
+            color-identifiers:color-index-for-identifier)
+      (setq color-identifiers:current-index
+            (1+ color-identifiers:current-index)))))
 
 (defun color-identifiers:scan-identifiers (fn limit &optional continue-p)
   "Run FN on all identifiers from point up to LIMIT.
