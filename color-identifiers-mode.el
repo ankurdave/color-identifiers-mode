@@ -204,12 +204,12 @@ Identifiers are defined by `color-identifiers:modes-alist'.
 If supplied, iteration only continues if CONTINUE-P evaluates to true."
   (let ((entry (assoc major-mode color-identifiers:modes-alist)))
     (when entry
-      (let ((identifier-context-re (cadr entry))
-            (identifier-re (caddr entry))
+      (let ((identifier-context-re (nth 1 entry))
+            (identifier-re (nth 2 entry))
             (identifier-faces
-             (if (functionp (cadddr entry))
-                 (funcall (cadddr entry))
-               (cadddr entry))))
+             (if (functionp (nth 3 entry))
+                 (funcall (nth 3 entry))
+               (nth 3 entry))))
         ;; Skip forward to the next identifier that matches all three conditions
         (condition-case nil
             (while (and (< (point) limit)
