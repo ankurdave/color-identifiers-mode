@@ -126,27 +126,27 @@ Colors are output to `color-identifiers:colors'."
          'candidates
          (apply 'color-srgb-to-lab
                 (color-hsl-to-rgb (/ h n-1) (/ s n-1) luminance)))))
-    (defun choose-candidate (candidate)
-      (delq candidate candidates)
-      (push candidate chosens))
-    (setq color-identifiers:colors nil)
-    (choose-candidate (car candidates))
-    (while (and candidates (< (length chosens) color-identifiers:num-colors))
-      (let* (;; For each remaining candidate, find the distance to the closest chosen
-             ;; color
-             (min-dists (-map (lambda (candidate)
-                                (cons candidate
-                                      (-min (-map (lambda (chosen)
-                                                    (color-cie-de2000 candidate chosen))
-                                                  chosens))))
-                              candidates))
-             ;; Take the candidate with the highest min distance
-             (best (-max-by (-on '> 'cdr) min-dists)))
-        (choose-candidate (car best))))
-    (setq color-identifiers:colors
-          (-map (lambda (lab)
-                  (apply 'color-rgb-to-hex (apply 'color-lab-to-srgb lab)))
-                chosens))))
+    (let ((choose-candidate (lambda (candidate)
+                              (delq candidate candidates)
+                              (push candidate chosens))))
+      (setq color-identifiers:colors nil)
+      (funcall choose-candidate (car candidates))
+      (while (and candidates (< (length chosens) color-identifiers:num-colors))
+        (let* (;; For each remaining candidate, find the distance to the closest chosen
+               ;; color
+               (min-dists (-map (lambda (candidate)
+                                  (cons candidate
+                                        (-min (-map (lambda (chosen)
+                                                      (color-cie-de2000 candidate chosen))
+                                                    chosens))))
+                                candidates))
+               ;; Take the candidate with the highest min distance
+               (best (-max-by (-on '> 'cdr) min-dists)))
+          (funcall choose-candidate (car best))))
+      (setq color-identifiers:colors
+            (-map (lambda (lab)
+                    (apply 'color-rgb-to-hex (apply 'color-lab-to-srgb lab)))
+                  chosens)))))
 
 (defvar-local color-identifiers:color-index-for-identifier nil
   "Alist of identifier-index pairs for internal use.
