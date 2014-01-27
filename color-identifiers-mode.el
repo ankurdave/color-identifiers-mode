@@ -36,9 +36,12 @@
 
 ;;; Code:
 
+(require 'advice)
 (require 'color)
 (require 'dash)
 (require 'dash-functional)
+
+(defvar color-identifiers:timer nil)
 
 ;;;###autoload
 (define-minor-mode color-identifiers-mode
@@ -65,8 +68,6 @@
   (color-identifiers:regenerate-colors))
 
 (add-to-list 'font-lock-extra-managed-props 'color-identifiers:fontified)
-
-(defvar color-identifiers:timer nil)
 
 (defvar color-identifiers:modes-alist nil
   "Alist of major modes and the ways to distinguish identifiers in those modes.
