@@ -30,9 +30,8 @@
 ;; identifier uniquely based on its name.  It is inspired by a post by Evan
 ;; Brooks: https://medium.com/p/3a6db2743a1e/
 
-;; Currently it only supports js-mode and scala-mode2, but support for other
-;; modes is forthcoming.  You can add support for your favorite mode by modifying
-;; `color-identifiers:modes-alist'.
+;; Check out the project page, which has screenshots, a demo, and usage
+;; instructions: https://github.com/ankurdave/color-identifiers-mode
 
 ;;; Code:
 
@@ -90,13 +89,11 @@ unfontified words will be considered.")
   "Alist from major modes to their declaration scan functions, for internal use.
 Modify this using `color-identifiers:set-declaration-scan-fn'.")
 
-(defun color-identifiers:get-declaration-scan-fn (mode)
-  (let ((entry (assoc mode color-identifiers:mode-to-scan-fn-alist)))
-    (if entry
-        (cdr entry)
-      nil)))
-
 (defun color-identifiers:set-declaration-scan-fn (mode scan-fn)
+  "Register SCAN-FN as the declaration scanner for MODE.
+SCAN-FN must scan the entire current buffer and return the
+identifiers to highlight as a list of strings. See
+`color-identifiers:elisp-get-declarations' for an example."
   (let ((entry (assoc mode color-identifiers:mode-to-scan-fn-alist)))
     (if entry
         (setcdr entry scan-fn)
@@ -184,6 +181,13 @@ For Emacs Lisp support within color-identifiers-mode."
 
 (defvar color-identifiers:colors nil
   "List of generated hex colors for internal use.")
+
+(defun color-identifiers:get-declaration-scan-fn (mode)
+  "See `color-identifiers:set-declaration-scan-fn'."
+  (let ((entry (assoc mode color-identifiers:mode-to-scan-fn-alist)))
+    (if entry
+        (cdr entry)
+      nil)))
 
 (defun color-identifiers:regenerate-colors ()
   "Generate perceptually distinct colors with the same luminance in HSL space.

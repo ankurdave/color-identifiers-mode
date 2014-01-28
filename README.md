@@ -1,7 +1,7 @@
 # Color Identifiers Mode
 Color Identifiers is a minor mode for Emacs that highlights each source code identifier uniquely based on its name. It is inspired by a [post by Evan Brooks](https://medium.com/p/3a6db2743a1e/).
 
-Currently it only supports js-mode and [scala-mode2](https://github.com/hvesalai/scala-mode2), but support for other modes is forthcoming. You can add support for your favorite mode by modifying `color-identifiers:modes-alist`.
+Currently it supports [scala-mode2](https://github.com/hvesalai/scala-mode2), js-mode, js2-mode, ruby-mode, python-mode, and emacs-lisp-mode. You can add support for your favorite mode by modifying `color-identifiers:modes-alist` and optionally calling `color-identifiers:set-declaration-scan-fn`.
 
 [Check out the demo.](http://youtu.be/g4qsiAo2aac)
 
