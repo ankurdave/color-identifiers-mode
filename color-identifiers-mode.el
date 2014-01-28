@@ -123,7 +123,7 @@ identifiers to highlight as a list of strings. See
 (add-to-list
  'color-identifiers:modes-alist
  `(ruby-mode . ("[^.][[:space:]]*" "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)" (nil))))
- 
+
 (add-to-list
  'color-identifiers:modes-alist
  `(python-mode . ("[^.][[:space:]]*"
@@ -247,8 +247,9 @@ The index refers to `color-identifiers:colors'.")
   "Refresh `color-identifiers:color-index-for-identifier' from current buffer."
   (interactive)
   (when color-identifiers-mode
-    (setq color-identifiers:identifiers
-          (funcall (color-identifiers:get-declaration-scan-fn major-mode)))
+    (when (color-identifiers:get-declaration-scan-fn major-mode)
+      (setq color-identifiers:identifiers
+            (funcall (color-identifiers:get-declaration-scan-fn major-mode))))
     (save-excursion
       (goto-char (point-min))
       (catch 'input-pending
