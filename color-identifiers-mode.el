@@ -184,7 +184,9 @@ arguments, loops (for .. in), or for comprehensions."
 For Emacs Lisp support within color-identifiers-mode."
   (pcase sexp
     ((or `(let . ,rest) `(let* . ,rest))
-     (append (when (listp (car rest)) (mapcar 'car (car rest)))
+     ;; VARLIST of let/let* could be like ((a 1) b c (d "foo")).
+     (append (when (listp (car rest))
+               (mapcar (lambda (var) (if (symbolp var) var (car var))) (car rest)))
              (color-identifiers:declarations-in-sexp rest)))
     ((or `(defun ,- ,args . ,rest) `(lambda ,args . ,rest))
      (append (when (listp args) args)
