@@ -207,7 +207,10 @@ For Emacs Lisp support within color-identifiers-mode."
           (while t
             (let* ((sexp (read (current-buffer)))
                    (ids (color-identifiers:declarations-in-sexp sexp))
-                   (strs (mapcar 'symbol-name ids)))
+                   (strs (-filter 'identity
+                                  (mapcar (lambda (id)
+                                            (when (symbolp id) (symbol-name id)))
+                                          ids))))
               (setq result (append strs result))))
         (end-of-file nil)))
     (delete-dups result)
