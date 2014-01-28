@@ -56,7 +56,7 @@
         (font-lock-add-keywords nil '((color-identifiers:colorize . default)) t)
         (unless color-identifiers:timer
           (setq color-identifiers:timer
-                (run-with-idle-timer 10 t 'color-identifiers:refresh)))
+                (run-with-idle-timer 5 t 'color-identifiers:refresh)))
         (ad-activate 'enable-theme))
     (when color-identifiers:timer
       (cancel-timer color-identifiers:timer))
@@ -192,9 +192,20 @@ For Emacs Lisp support within color-identifiers-mode."
      (append (when (listp args) args)
              (color-identifiers:declarations-in-sexp rest)))
     (`nil nil)
-    (`(,a . ,b)
-     (append (color-identifiers:declarations-in-sexp a)
-             (color-identifiers:declarations-in-sexp b)))
+    ((pred consp)
+     (let ((cons sexp)
+           (result nil))
+       (while (consp cons)
+         (let ((ids (color-identifiers:declarations-in-sexp (car cons))))
+           (when ids
+             (setq result (append ids result))))
+         (setq cons (cdr cons)))
+       (when cons
+         ;; `cons' is non-nil but also non-cons
+         (let ((ids (color-identifiers:declarations-in-sexp cons)))
+           (when ids
+             (setq result (append ids result)))))
+       result))
     (other-object nil)))
 
 (defun color-identifiers:elisp-get-declarations ()
