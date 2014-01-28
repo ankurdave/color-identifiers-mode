@@ -39,6 +39,7 @@
 (require 'color)
 (require 'dash)
 (require 'dash-functional)
+(require 'python)
 
 (defvar color-identifiers:timer)
 
@@ -102,12 +103,14 @@ identifiers to highlight as a list of strings. See
 
 ;;; MAJOR MODE SUPPORT =========================================================
 
+;; Scala
 (add-to-list
  'color-identifiers:modes-alist
  `(scala-mode . ("[^.][[:space:]]*"
                  "\\_<\\([[:lower:]]\\([_]??[[:lower:][:upper:]\\$0-9]+\\)*\\(_+[#:<=>@!%&*+/?\\\\^|~-]+\\|_\\)?\\)"
                  (nil scala-font-lock:var-face font-lock-variable-name-face))))
 
+;;; JavaScript
 (add-to-list
  'color-identifiers:modes-alist
  `(js-mode . ("[^.][[:space:]]*"
@@ -120,9 +123,54 @@ identifiers to highlight as a list of strings. See
               "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
               (nil font-lock-variable-name-face js2-function-param))))
 
+;; Ruby
 (add-to-list
  'color-identifiers:modes-alist
  `(ruby-mode . ("[^.][[:space:]]*" "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)" (nil))))
+
+;; Python
+(defun color-identifiers:python-get-declarations ()
+  "Extract a list of identifiers declared in the current buffer.
+For Python support within color-identifiers-mode.  Supports
+function arguments and variable assignment, but not yet lambda
+arguments, loops (for .. in), or for comprehensions."
+  (let ((result nil))
+    ;; Function arguments
+    (save-excursion
+      (goto-char (point-min))
+      (while (python-nav-forward-defun)
+        (let ((arglist (sexp-at-point)))
+          (when arglist
+            (let* ((first-arg (car arglist))
+                   (rest (cdr arglist))
+                   (rest-args
+                    (-map (lambda (token) (cadr token))
+                          (-filter (lambda (token) (and (listp token) (eq (car token) '\,))) rest)))
+                   (args-filtered (cons first-arg rest-args))
+                   (params (-map (lambda (token)
+                                   (car (split-string (symbol-name token) "=")))
+                                 args-filtered)))
+              (setq result (append params result)))))))
+    ;; Variables that python-mode highlighted with font-lock-variable-name-face
+    (save-excursion
+      (goto-char (point-min))
+      (catch 'end-of-file
+        (while t
+          (let ((next-change (next-property-change (point))))
+            (if (not next-change)
+                (throw 'end-of-file nil)
+              (goto-char next-change)
+              (when (or (eq (get-text-property (point) 'face) 'font-lock-variable-name-face)
+                        ;; If we fontified it in the past, assume it should
+                        ;; continue to be fontified. This avoids alternating
+                        ;; between fontified and unfontified.
+                        (get-text-property (point) 'color-identifiers:fontified))
+                (push (substring-no-properties (symbol-name (symbol-at-point))) result)))))))
+    (delete-dups result)
+    result))
+
+(color-identifiers:set-declaration-scan-fn
+ 'python-mode 'color-identifiers:python-get-declarations)
 
 (add-to-list
  'color-identifiers:modes-alist
@@ -130,6 +178,7 @@ identifiers to highlight as a list of strings. See
                   "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
                   (nil font-lock-type-face font-lock-variable-name-face))))
 
+;; Emacs Lisp
 (defun color-identifiers:declarations-in-sexp (sexp)
   "Extract a list of identifiers declared in SEXP.
 For Emacs Lisp support within color-identifiers-mode."
@@ -247,25 +296,30 @@ The index refers to `color-identifiers:colors'.")
   "Refresh `color-identifiers:color-index-for-identifier' from current buffer."
   (interactive)
   (when color-identifiers-mode
-    (when (color-identifiers:get-declaration-scan-fn major-mode)
-      (setq color-identifiers:identifiers
-            (funcall (color-identifiers:get-declaration-scan-fn major-mode))))
-    (save-excursion
-      (goto-char (point-min))
-      (catch 'input-pending
-        (let ((i 0)
-              (n color-identifiers:num-colors)
-              (result nil))
-          (color-identifiers:scan-identifiers
-           (lambda (start end)
-             (let ((identifier (buffer-substring-no-properties start end)))
-               (unless (assoc-string identifier result)
-                 (push (cons identifier (% i n)) result)
-                 (setq i (1+ i)))))
-           (point-max)
-           (lambda () (if (input-pending-p) (throw 'input-pending nil) t)))
-          (setq color-identifiers:color-index-for-identifier result)
-          (font-lock-fontify-buffer))))))
+    (if (color-identifiers:get-declaration-scan-fn major-mode)
+        (progn
+          (setq color-identifiers:identifiers
+                (funcall (color-identifiers:get-declaration-scan-fn major-mode)))
+          (setq color-identifiers:color-index-for-identifier
+                (-map-indexed (lambda (i identifier)
+                                (cons identifier (% i color-identifiers:num-colors)))
+                              color-identifiers:identifiers)))
+      (save-excursion
+        (goto-char (point-min))
+        (catch 'input-pending
+          (let ((i 0)
+                (n color-identifiers:num-colors)
+                (result nil))
+            (color-identifiers:scan-identifiers
+             (lambda (start end)
+               (let ((identifier (buffer-substring-no-properties start end)))
+                 (unless (assoc-string identifier result)
+                   (push (cons identifier (% i n)) result)
+                   (setq i (1+ i)))))
+             (point-max)
+             (lambda () (if (input-pending-p) (throw 'input-pending nil) t)))
+            (setq color-identifiers:color-index-for-identifier result)))))
+    (font-lock-fontify-buffer)))
 
 (defun color-identifiers:color-identifier (identifier)
   "Look up or generate the hex color for IDENTIFIER.
