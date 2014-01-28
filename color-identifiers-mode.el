@@ -104,7 +104,7 @@ unfontified words will be considered.")
  'color-identifiers:modes-alist
  `(ruby-mode . ("[^.][[:space:]]*" "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)" (nil))))
  
- (add-to-list
+(add-to-list
  'color-identifiers:modes-alist
  `(python-mode . ("[^.][[:space:]]*"
                   "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
