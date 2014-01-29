@@ -259,6 +259,7 @@ For Emacs Lisp support within color-identifiers-mode."
 Colors are output to `color-identifiers:colors'."
   (interactive)
   (let* ((luminance (max 0.35 (min 0.8 (color-identifiers:attribute-luminance :foreground))))
+         (bgcolor (color-identifiers:attribute-lab :background))
          (candidates '())
          (chosens '())
          (n 8)
@@ -274,8 +275,6 @@ Colors are output to `color-identifiers:colors'."
     (let ((choose-candidate (lambda (candidate)
                               (delq candidate candidates)
                               (push candidate chosens))))
-      (setq color-identifiers:colors nil)
-      (funcall choose-candidate (car candidates))
       (while (and candidates (< (length chosens) color-identifiers:num-colors))
         (let* (;; For each remaining candidate, find the distance to the closest chosen
                ;; color
@@ -283,7 +282,7 @@ Colors are output to `color-identifiers:colors'."
                                   (cons candidate
                                         (-min (-map (lambda (chosen)
                                                       (color-cie-de2000 candidate chosen))
-                                                    chosens))))
+                                                    (cons bgcolor chosens)))))
                                 candidates))
                ;; Take the candidate with the highest min distance
                (best (-max-by (-on '> 'cdr) min-dists)))
@@ -307,6 +306,13 @@ The index refers to `color-identifiers:colors'.")
     (if rgb
 	(nth 2 (apply 'color-rgb-to-hsl rgb))
       0.5)))
+
+(defun color-identifiers:attribute-lab (attribute)
+  "Find the LAB color value of the specified ATTRIBUTE on the default face."
+  (let ((rgb (color-name-to-rgb (face-attribute 'default attribute))))
+    (if rgb
+        (apply 'color-srgb-to-lab rgb)
+      '(0.0 0.0 0.0))))
 
 (defun color-identifiers:refresh ()
   "Refresh `color-identifiers:color-index-for-identifier' from current buffer."
