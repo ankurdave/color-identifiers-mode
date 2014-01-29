@@ -347,7 +347,7 @@ The index refers to `color-identifiers:colors'.")
   "Look up or generate the hex color for IDENTIFIER.
 IDENTIFIER is looked up in `color-identifiers:color-index-for-identifier' and
 generated if not present there."
-  (unless (and color-identifiers:identifiers
+  (unless (and (color-identifiers:get-declaration-scan-fn major-mode)
                (not (member identifier color-identifiers:identifiers)))
     (let ((entry (assoc-string identifier color-identifiers:color-index-for-identifier)))
       (if entry
