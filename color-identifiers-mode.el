@@ -183,7 +183,7 @@ arguments, loops (for .. in), or for comprehensions."
                   (nil font-lock-type-face font-lock-variable-name-face))))
 
 ;; Emacs Lisp
-(defun color-identifiers:declarations-in-sexp (sexp)
+(defun color-identifiers:elisp-declarations-in-sexp (sexp)
   "Extract a list of identifiers declared in SEXP.
 For Emacs Lisp support within color-identifiers-mode."
   (pcase sexp
@@ -191,22 +191,22 @@ For Emacs Lisp support within color-identifiers-mode."
      ;; VARLIST of let/let* could be like ((a 1) b c (d "foo")).
      (append (when (listp (car rest))
                (mapcar (lambda (var) (if (symbolp var) var (car var))) (car rest)))
-             (color-identifiers:declarations-in-sexp rest)))
+             (color-identifiers:elisp-declarations-in-sexp rest)))
     ((or `(defun ,- ,args . ,rest) `(lambda ,args . ,rest))
      (append (when (listp args) args)
-             (color-identifiers:declarations-in-sexp rest)))
+             (color-identifiers:elisp-declarations-in-sexp rest)))
     (`nil nil)
     ((pred consp)
      (let ((cons sexp)
            (result nil))
        (while (consp cons)
-         (let ((ids (color-identifiers:declarations-in-sexp (car cons))))
+         (let ((ids (color-identifiers:elisp-declarations-in-sexp (car cons))))
            (when ids
              (setq result (append ids result))))
          (setq cons (cdr cons)))
        (when cons
          ;; `cons' is non-nil but also non-cons
-         (let ((ids (color-identifiers:declarations-in-sexp cons)))
+         (let ((ids (color-identifiers:elisp-declarations-in-sexp cons)))
            (when ids
              (setq result (append ids result)))))
        result))
@@ -221,7 +221,7 @@ For Emacs Lisp support within color-identifiers-mode."
       (condition-case nil
           (while t
             (let* ((sexp (read (current-buffer)))
-                   (ids (color-identifiers:declarations-in-sexp sexp))
+                   (ids (color-identifiers:elisp-declarations-in-sexp sexp))
                    (strs (-filter 'identity
                                   (mapcar (lambda (id)
                                             (when (symbolp id) (symbol-name id)))
@@ -239,6 +239,117 @@ For Emacs Lisp support within color-identifiers-mode."
  `(emacs-lisp-mode . (""
                       "\\_<\\(\\(?:\\s_\\|\\sw\\)+\\)"
                       (nil))))
+
+;; Clojure
+(defun color-identifiers:clojure-extract-params (binding-forms)
+  "Extracts bound identifiers from a sequence of binding-forms by flattening it.
+If BINDING-FORMS is actually a binding-form+exprs, extracts the
+binding-form first. For Clojure support within color-identifiers-mode.
+
+See http://clojure.org/special_forms#binding-forms for the syntax
+of binding-forms.
+
+TODO: Fails (returns incorrect identifiers) on map binding-forms."
+  (cond
+   ((and (listp binding-forms)
+         (vectorp (car binding-forms)))
+    (color-identifiers:clojure-extract-params (car binding-forms)))
+   ((sequencep binding-forms)
+    (apply 'append (mapcar 'color-identifiers:clojure-extract-params binding-forms)))
+   (t (list binding-forms))))
+
+(defun color-identifiers:clojure-contains-binding-forms-p (sexp)
+  "Returns t if SEXP could be a binding-form or a binding-form+exprs."
+  (or (vectorp sexp)
+      (and (listp sexp)
+           (vectorp (car sexp)))))
+
+(defun color-identifiers:clojure-declarations-in-sexp (sexp)
+  "Extract a list of identifiers declared in SEXP.
+For Clojure support within color-identifiers-mode. "
+  (pcase sexp
+    ;; (let [bindings*] exprs*)
+    ;; binding => binding-form init-expr
+    ((or `(let . ,rest)
+         `(loop . ,rest))
+     (append (when (sequencep (car rest))
+               (let* ((bindings (append (car rest) nil))
+                      (even-indices
+                       (-filter 'evenp (number-sequence 0 (1- (length bindings)))))
+                      (binding-forms (-select-by-indices even-indices bindings)))
+                 (color-identifiers:clojure-extract-params binding-forms)))
+             (color-identifiers:clojure-declarations-in-sexp rest)))
+    ;; (fn name? [binding-form*] exprs*)
+    ;; (fn name? ([binding-form*] exprs*)+)
+    (`(fn . ,rest)
+     (let* ((binding-forms+exprs (if (symbolp (car rest)) (cdr rest) rest))
+            (binding-forms (if (vectorp (car binding-forms+exprs))
+                               (elt binding-forms+exprs 0)
+                             (mapcar 'car binding-forms+exprs)))
+            (params (color-identifiers:clojure-extract-params binding-forms)))
+       (append params (color-identifiers:clojure-declarations-in-sexp rest))))
+    ;; (defn name doc-string? attr-map? [binding-form*] body)
+    ;; (defn name doc-string? attr-map? ([binding-form*] body)+)
+    ((or `(defn ,- . ,rest)
+         `(defn- ,- . ,rest)
+         `(defmacro ,- . ,rest))
+     (let ((params (-mapcat (lambda (params+body)
+                              (when (color-identifiers:clojure-contains-binding-forms-p params+body)
+                                (color-identifiers:clojure-extract-params params+body)))
+                            rest)))
+       (append params (color-identifiers:clojure-declarations-in-sexp rest))))
+    (`nil nil)
+    ((pred consp)
+     (let ((cons sexp)
+           (result nil))
+       (while (consp cons)
+         (let ((ids (color-identifiers:clojure-declarations-in-sexp (car cons))))
+           (when ids
+             (setq result (append ids result))))
+         (setq cons (cdr cons)))
+       (when cons
+         ;; `cons' is non-nil but also non-cons
+         (let ((ids (color-identifiers:clojure-declarations-in-sexp cons)))
+           (when ids
+             (setq result (append ids result)))))
+       result))
+    ((pred arrayp)
+     (apply 'append (mapcar 'color-identifiers:clojure-declarations-in-sexp sexp)))
+    (other-object nil)))
+
+(defun color-identifiers:clojure-get-declarations ()
+  "Extract a list of identifiers declared in the current buffer.
+For Clojure support within color-identifiers-mode.
+
+TODO: Fails on top-level sexps containing Clojure syntax that is
+incompatible with Emacs Lisp syntax, such as reader macros (#)."
+  (let ((result nil))
+    (save-excursion
+      (goto-char (point-min))
+      (condition-case nil
+          (while t
+            (condition-case nil
+                (let* ((sexp (read (current-buffer)))
+                       (ids (color-identifiers:clojure-declarations-in-sexp sexp))
+                       (strs (-filter (lambda (id) (if (member id '("&" ":as")) nil id))
+                                      (mapcar (lambda (id)
+                                                (when (symbolp id) (symbol-name id)))
+                                              ids))))
+                  (setq result (append strs result)))
+              (invalid-read-syntax nil)))
+        (end-of-file nil)))
+    (delete-dups result)
+    result))
+
+(color-identifiers:set-declaration-scan-fn
+ 'clojure-mode 'color-identifiers:clojure-get-declarations)
+
+(add-to-list
+ 'color-identifiers:modes-alist
+ `(clojure-mode . (""
+                   "\\_<\\(\\(?:\\s_\\|\\sw\\)+\\)"
+                   (nil))))
+
 
 ;;; PACKAGE INTERNALS ==========================================================
 
