@@ -65,6 +65,10 @@
     (ad-deactivate 'enable-theme))
   (font-lock-fontify-buffer))
 
+;;;###autoload
+(define-global-minor-mode global-color-identifiers-mode
+  color-identifiers-mode color-identifiers-mode-maybe)
+
 (defadvice enable-theme (after color-identifiers:regen-on-theme-change)
   (color-identifiers:regenerate-colors))
 
@@ -400,6 +404,13 @@ If supplied, iteration only continues if CONTINUE-P evaluates to true."
          (put-text-property start end 'face `(:foreground ,hex))
          (put-text-property start end 'color-identifiers:fontified t))))
    limit))
+
+(defun color-identifiers-mode-maybe ()
+  "Enable `color-identifiers-mode' in the current buffer if desired.
+When `major-mode' is listed in `color-identifiers:modes-alist', then
+`color-identifiers-mode' will be enabled."
+  (when (assoc major-mode color-identifiers:modes-alist)
+    (color-identifiers-mode 1)))
 
 (provide 'color-identifiers-mode)
 
