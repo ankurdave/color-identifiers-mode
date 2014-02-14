@@ -70,6 +70,7 @@
   color-identifiers-mode color-identifiers-mode-maybe)
 
 (defadvice enable-theme (after color-identifiers:regen-on-theme-change)
+  "Regenerate colors for color-identifiers-mode on theme change."
   (color-identifiers:regenerate-colors))
 
 ;;; USER-VISIBLE VARIABLES AND FUNCTIONS =======================================
@@ -113,6 +114,38 @@ identifiers to highlight as a list of strings. See
  `(scala-mode . ("[^.][[:space:]]*"
                  "\\_<\\([[:lower:]]\\([_]??[[:lower:][:upper:]\\$0-9]+\\)*\\(_+[#:<=>@!%&*+/?\\\\^|~-]+\\|_\\)?\\)"
                  (nil scala-font-lock:var-face font-lock-variable-name-face))))
+
+;; C/C++
+(defun color-identifiers:cc-mode-get-declarations ()
+  "Extract a list of identifiers declared in the current buffer.
+For cc-mode support within color-identifiers-mode."
+  (let ((result nil))
+    ;; Variables that cc-mode highlighted with font-lock-variable-name-face
+    (save-excursion
+      (goto-char (point-min))
+      (catch 'end-of-file
+        (while t
+          (let ((next-change (next-property-change (point))))
+            (if (not next-change)
+                (throw 'end-of-file nil)
+              (goto-char next-change)
+              (when (or (eq (get-text-property (point) 'face) 'font-lock-variable-name-face)
+                        ;; If we fontified it in the past, assume it should
+                        ;; continue to be fontified. This avoids alternating
+                        ;; between fontified and unfontified.
+                        (get-text-property (point) 'color-identifiers:fontified))
+                (push (substring-no-properties (symbol-name (symbol-at-point))) result)))))))
+    (delete-dups result)
+    result))
+
+(dolist (maj-mode '(c-mode c++-mode java-mode))
+  (color-identifiers:set-declaration-scan-fn
+   maj-mode 'color-identifiers:cc-mode-get-declarations)
+  (add-to-list
+   'color-identifiers:modes-alist
+   `(,maj-mode . (""
+                  "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
+                  (nil font-lock-variable-name-face)))))
 
 ;;; JavaScript
 (add-to-list
