@@ -160,6 +160,19 @@ For cc-mode support within color-identifiers-mode."
               "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
               (nil font-lock-variable-name-face js2-function-param))))
 
+(add-to-list
+ 'color-identifiers:modes-alist
+ `(js3-mode . ("[^.][[:space:]]*"
+              "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
+              (nil font-lock-variable-name-face js3-function-param-face))))
+
+;; CoffeeScript
+;; May need to add the @ to the symbol syntax
+;; (add-hook 'coffee-mode-hook (lambda () (modify-syntax-entry ?\@ "_"))) in .emacs
+(add-to-list
+ 'color-identifiers:modes-alist
+ `(coffee-mode . ("[^.][[:space:]]*" "\\_<\\([a-zA-Z_$@]\\(?:\\s_\\|\\sw\\)*\\)" (nil font-lock-variable-name-face))))
+
 ;; Ruby
 (add-to-list
  'color-identifiers:modes-alist
