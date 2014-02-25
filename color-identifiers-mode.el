@@ -160,6 +160,13 @@ For cc-mode support within color-identifiers-mode."
               "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
               (nil font-lock-variable-name-face js2-function-param))))
 
+;; Sgml mode and the like
+(dolist (maj-mode '(sgml-mode html-mode jinja2-mode))
+(add-to-list
+ 'color-identifiers:modes-alist
+ `(,maj-mode . ("</?!?"
+              "\\_</?!?\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
+              (nil font-lock-function-name-face)))))
 ;; Ruby
 (add-to-list
  'color-identifiers:modes-alist
