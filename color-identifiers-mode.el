@@ -465,7 +465,7 @@ The index refers to `color-identifiers:colors'.")
   "Find the HSL luminance of the specified ATTRIBUTE on the default face."
   (let ((rgb (color-name-to-rgb (face-attribute 'default attribute))))
     (if rgb
-	(nth 2 (apply 'color-rgb-to-hsl rgb))
+        (nth 2 (apply 'color-rgb-to-hsl rgb))
       0.5)))
 
 (defun color-identifiers:attribute-lab (attribute)
@@ -475,6 +475,20 @@ The index refers to `color-identifiers:colors'.")
         (apply 'color-srgb-to-lab rgb)
       '(0.0 0.0 0.0))))
 
+(defun color-identifiers:assign-color (identifier)
+  "Affect the next color to identifier and increment current index"
+      (push (cons identifier (% color-identifiers:current-index
+                                           (length color-identifiers:colors)))
+            color-identifiers:color-index-for-identifier)
+      (setq color-identifiers:current-index (1+ color-identifiers:current-index)))
+
+(defun color-identifiers:append-identifiers (new-identifiers)
+  "Check if any identifier is a new one and assign a color in this case"
+  (while new-identifiers
+    (unless (assoc-string (car new-identifiers) color-identifiers:color-index-for-identifier)
+      (color-identifiers:assign-color (car new-identifiers)))
+    (setq new-identifiers (cdr new-identifiers))))
+
 (defun color-identifiers:refresh ()
   "Refresh `color-identifiers:color-index-for-identifier' from current buffer."
   (interactive)
@@ -483,25 +497,17 @@ The index refers to `color-identifiers:colors'.")
         (progn
           (setq color-identifiers:identifiers
                 (funcall (color-identifiers:get-declaration-scan-fn major-mode)))
-          (setq color-identifiers:color-index-for-identifier
-                (-map-indexed (lambda (i identifier)
-                                (cons identifier (% i color-identifiers:num-colors)))
-                              color-identifiers:identifiers)))
+          (color-identifiers:append-identifiers color-identifiers:identifiers))
       (save-excursion
         (goto-char (point-min))
         (catch 'input-pending
-          (let ((i 0)
-                (n color-identifiers:num-colors)
-                (result nil))
-            (color-identifiers:scan-identifiers
-             (lambda (start end)
-               (let ((identifier (buffer-substring-no-properties start end)))
-                 (unless (assoc-string identifier result)
-                   (push (cons identifier (% i n)) result)
-                   (setq i (1+ i)))))
-             (point-max)
-             (lambda () (if (input-pending-p) (throw 'input-pending nil) t)))
-            (setq color-identifiers:color-index-for-identifier result)))))
+          (color-identifiers:scan-identifiers
+           (lambda (start end)
+             (let ((identifier (buffer-substring-no-properties start end)))
+               (unless (assoc-string identifier color-identifiers:color-index-for-identifier)
+                 (color-identifiers:assign-color identifier))))
+           (point-max)
+           (lambda () (if (input-pending-p) (throw 'input-pending nil) t))))))
     (font-lock-fontify-buffer)))
 
 (defun color-identifiers:color-identifier (identifier)
@@ -513,12 +519,8 @@ generated if not present there."
     (let ((entry (assoc-string identifier color-identifiers:color-index-for-identifier)))
       (if entry
           (nth (cdr entry) color-identifiers:colors)
-        ;; If not present, make a temporary color using the rotating index
-        (push (cons identifier (% color-identifiers:current-index
-                                  (length color-identifiers:colors)))
-              color-identifiers:color-index-for-identifier)
-        (setq color-identifiers:current-index
-              (1+ color-identifiers:current-index))))))
+        ;; If not present, assign a new color
+        (color-identifiers:assign-color identifier)))))
 
 (defun color-identifiers:scan-identifiers (fn limit &optional continue-p)
   "Run FN on all identifiers from point up to LIMIT.
