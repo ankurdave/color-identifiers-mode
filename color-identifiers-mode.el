@@ -190,7 +190,7 @@ arguments, loops (for .. in), or for comprehensions."
       (goto-char (point-min))
       (while (python-nav-forward-defun)
         (let ((arglist (sexp-at-point)))
-          (when arglist
+          (when (and arglist (listp arglist))
             (let* ((first-arg (car arglist))
                    (rest (cdr arglist))
                    (rest-args
