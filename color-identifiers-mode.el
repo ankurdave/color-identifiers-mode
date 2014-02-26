@@ -477,10 +477,12 @@ The index refers to `color-identifiers:colors'.")
 
 (defun color-identifiers:assign-color (identifier)
   "Affect the next color to identifier and increment current index"
-      (push (cons identifier (% color-identifiers:current-index
-                                           (length color-identifiers:colors)))
-            color-identifiers:color-index-for-identifier)
-      (setq color-identifiers:current-index (1+ color-identifiers:current-index)))
+  (let ((new-color (% color-identifiers:current-index
+                      (length color-identifiers:colors))))
+    (push (cons identifier new-color)
+          color-identifiers:color-index-for-identifier)
+    (setq color-identifiers:current-index (1+ color-identifiers:current-index))
+    new-color))
 
 (defun color-identifiers:append-identifiers (new-identifiers)
   "Check if any identifier is a new one and assign a color in this case"
@@ -519,8 +521,9 @@ generated if not present there."
     (let ((entry (assoc-string identifier color-identifiers:color-index-for-identifier)))
       (if entry
           (nth (cdr entry) color-identifiers:colors)
-        ;; If not present, assign a new color
-        (color-identifiers:assign-color identifier)))))
+        (nth
+         ;; If not present, assign a new color
+         (color-identifiers:assign-color identifier) color-identifiers:colors)))))
 
 (defun color-identifiers:scan-identifiers (fn limit &optional continue-p)
   "Run FN on all identifiers from point up to LIMIT.
