@@ -36,3 +36,21 @@ If you like it, enable it for all supported files by setting `global-color-ident
 ```
 M-x customize-save-variable RET global-color-identifiers-mode RET y
 ```
+
+## Extras
+
+To make the variables stand out, you can turn off highlighting for all other keywords using code similar to the following:
+```lisp
+(let ((faces '(font-lock-comment-face font-lock-comment-delimiter-face font-lock-constant-face font-lock-type-face font-lock-function-name-face font-lock-variable-name-face font-lock-keyword-face font-lock-string-face font-lock-builtin-face font-lock-preprocessor-face font-lock-warning-face font-lock-doc-face)))
+  (dolist (face faces)
+    (set-face-attribute face nil :foreground nil :weight 'normal :slant 'normal)))
+
+(set-face-attribute 'font-lock-comment-delimiter-face nil :slant 'italic)
+(set-face-attribute 'font-lock-comment-face nil :slant 'italic)
+(set-face-attribute 'font-lock-doc-face nil :slant 'italic)
+(set-face-attribute 'font-lock-keyword-face nil :weight 'bold)
+(set-face-attribute 'font-lock-builtin-face nil :weight 'bold)
+(set-face-attribute 'font-lock-preprocessor-face nil :weight 'bold)
+```
+
+![Other Keywords Dimmed](https://raw.github.com/ankurdave/color-identifiers-mode/gh-pages/dim-other-keywords.png)
