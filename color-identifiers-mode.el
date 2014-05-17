@@ -410,8 +410,9 @@ incompatible with Emacs Lisp syntax, such as reader macros (#)."
 (defvar color-identifiers:timer nil
   "Timer for running `color-identifiers:refresh'.")
 
-(defvar-local color-identifiers:identifiers nil
+(defvar color-identifiers:identifiers nil
   "The set of identifiers in the current buffer, for internal use.")
+(make-variable-buffer-local 'color-identifiers:identifiers)
 
 (defvar color-identifiers:colors nil
   "List of generated hex colors for internal use.")
@@ -461,13 +462,15 @@ Colors are output to `color-identifiers:colors'."
                     (apply 'color-rgb-to-hex (apply 'color-lab-to-srgb lab)))
                   chosens)))))
 
-(defvar-local color-identifiers:color-index-for-identifier nil
+(defvar color-identifiers:color-index-for-identifier nil
   "Alist of identifier-index pairs for internal use.
 The index refers to `color-identifiers:colors'.")
+(make-variable-buffer-local 'color-identifiers:color-index-for-identifier)
 
-(defvar-local color-identifiers:current-index 0
+(defvar color-identifiers:current-index 0
   "Current color index for new identifiers, for internal use.
 The index refers to `color-identifiers:colors'.")
+(make-variable-buffer-local 'color-identifiers:current-index)
 
 (defun color-identifiers:attribute-luminance (attribute)
   "Find the HSL luminance of the specified ATTRIBUTE on the default face."
