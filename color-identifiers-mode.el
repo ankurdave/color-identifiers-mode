@@ -226,8 +226,9 @@ arguments, loops (for .. in), or for comprehensions."
     (delete-dups result)
     result))
 
-(color-identifiers:set-declaration-scan-fn
- 'python-mode 'color-identifiers:python-get-declarations)
+(when (fboundp 'python-nav-forward-defun)
+  (color-identifiers:set-declaration-scan-fn
+   'python-mode 'color-identifiers:python-get-declarations))
 
 (add-to-list
  'color-identifiers:modes-alist
