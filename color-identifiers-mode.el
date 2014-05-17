@@ -7,7 +7,7 @@
 ;; Created: 24 Jan 2014
 ;; Version: 1.1
 ;; Keywords: faces, languages
-;; Package-Requires: ((dash "2.5.0") (dash-functional "1.0.0") (emacs "24"))
+;; Package-Requires: ((dash "2.5.0") (emacs "24"))
 
 ;; This file is not a part of GNU Emacs.
 
@@ -38,7 +38,6 @@
 (require 'advice)
 (require 'color)
 (require 'dash)
-(require 'dash-functional)
 (require 'python)
 
 (defvar color-identifiers:timer)
@@ -446,7 +445,7 @@ Colors are output to `color-identifiers:colors'."
                                                     (cons bgcolor chosens)))))
                                 candidates))
                ;; Take the candidate with the highest min distance
-               (best (-max-by (-on '> 'cdr) min-dists)))
+               (best (-max-by (lambda (x y) (> (cdr x) (cdr y))) min-dists)))
           (funcall choose-candidate (car best))))
       (setq color-identifiers:colors
             (-map (lambda (lab)
