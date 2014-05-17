@@ -31,10 +31,10 @@ Then install it:
 
 Finally, visit a supported file and type `M-x color-identifiers-mode`.
 
-If you like it, enable it for all supported files by setting `global-color-identifiers-mode`:
+If you like it, enable it for all supported files by adding the following to your init file:
 
-```
-M-x customize-save-variable RET global-color-identifiers-mode RET y
+```lisp
+(add-hook 'after-init-hook 'global-color-identifiers-mode)
 ```
 
 ## Extras
