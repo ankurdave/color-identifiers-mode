@@ -94,6 +94,12 @@ unfontified words will be considered.")
   "HSL luminance of identifier colors. If nil, calculated from the luminance
 of the default face.")
 
+(defvar color-identifiers:min-color-saturation 0.0
+    "The minimum saturation that identifier colors will be generated with.")
+
+(defvar color-identifiers:max-color-saturation 1.0
+    "The maxumum saturation that identifier colors will be generated with.")
+
 (defvar color-identifiers:mode-to-scan-fn-alist nil
   "Alist from major modes to their declaration scan functions, for internal use.
 Modify this using `color-identifiers:set-declaration-scan-fn'.")
@@ -434,6 +440,8 @@ Colors are output to `color-identifiers:colors'."
   (interactive)
   (let* ((luminance (or color-identifiers:color-luminance
                        (max 0.35 (min 0.8 (color-identifiers:attribute-luminance :foreground)))))
+         (min-saturation (float color-identifiers:min-color-saturation))
+         (saturation-range (- (float color-identifiers:max-color-saturation) min-saturation))
          (bgcolor (color-identifiers:attribute-lab :background))
          (candidates '())
          (chosens '())
@@ -446,7 +454,9 @@ Colors are output to `color-identifiers:colors'."
         (add-to-list
          'candidates
          (apply 'color-srgb-to-lab
-                (color-hsl-to-rgb (/ h n-1) (/ s n-1) luminance)))))
+                (color-hsl-to-rgb (/ h n-1)
+                                  (+ min-saturation (* (/ s n-1) saturation-range))
+                                  luminance)))))
     (let ((choose-candidate (lambda (candidate)
                               (delq candidate candidates)
                               (push candidate chosens))))
