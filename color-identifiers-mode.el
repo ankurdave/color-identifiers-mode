@@ -90,6 +90,10 @@ unfontified words will be considered.")
 (defvar color-identifiers:num-colors 10
   "The number of different colors to generate.")
 
+(defvar color-identifiers:color-luminance nil
+  "HSL luminance of identifier colors. If nil, calculated from the luminance
+of the default face.")
+
 (defvar color-identifiers:mode-to-scan-fn-alist nil
   "Alist from major modes to their declaration scan functions, for internal use.
 Modify this using `color-identifiers:set-declaration-scan-fn'.")
@@ -428,7 +432,8 @@ incompatible with Emacs Lisp syntax, such as reader macros (#)."
   "Generate perceptually distinct colors with the same luminance in HSL space.
 Colors are output to `color-identifiers:colors'."
   (interactive)
-  (let* ((luminance (max 0.35 (min 0.8 (color-identifiers:attribute-luminance :foreground))))
+  (let* ((luminance (or color-identifiers:color-luminance
+                       (max 0.35 (min 0.8 (color-identifiers:attribute-luminance :foreground)))))
          (bgcolor (color-identifiers:attribute-lab :background))
          (candidates '())
          (chosens '())
