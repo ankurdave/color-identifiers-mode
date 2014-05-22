@@ -76,16 +76,19 @@
 
 (defvar color-identifiers:modes-alist nil
   "Alist of major modes and the ways to distinguish identifiers in those modes.
-The value of each cons cell provides three constraints for finding identifiers.
-A word must match all three constraints to be colored as an identifier.  The
-value has the form (IDENTIFIER-CONTEXT-RE IDENTIFIER-RE IDENTIFIER-FACES).
+The value of each cons cell provides four constraints for finding identifiers.
+A word must match all four constraints to be colored as an identifier.  The
+value has the form (IDENTIFIER-CONTEXT-RE IDENTIFIER-RE IDENTIFIER-FACES
+IDENTIFIER-EXCLUSION-RE).
 
 IDENTIFIER-CONTEXT-RE is a regexp matching the text that must precede an
 identifier.
 IDENTIFIER-RE is a regexp whose first capture group matches identifiers.
 IDENTIFIER-FACES is a list of faces with which the major mode decorates
 identifiers or a function returning such a list.  If the list includes nil,
-unfontified words will be considered.")
+unfontified words will be considered.
+IDENTIFIER-EXCLUSION-RE is a regexp that must not match identifiers,
+or nil.")
 
 (defvar color-identifiers:num-colors 10
   "The number of different colors to generate.")
@@ -194,6 +197,14 @@ For cc-mode support within color-identifiers-mode."
 (add-to-list
  'color-identifiers:modes-alist
  `(ruby-mode . ("[^.][[:space:]]*" "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)" (nil))))
+
+;; Objective-C
+(add-to-list
+ 'color-identifiers:modes-alist
+ `(objc-mode . (nil
+                "\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
+                (nil font-lock-variable-name-face)
+                "[a-zA-Z_$]\\(\\s_\\|\\sw\\)*\\s-*[(:]")))
 
 ;; Python
 (defun color-identifiers:python-get-declarations ()
@@ -557,8 +568,9 @@ If supplied, iteration only continues if CONTINUE-P evaluates to true."
             (identifier-faces
              (if (functionp (nth 3 entry))
                  (funcall (nth 3 entry))
-               (nth 3 entry))))
-        ;; Skip forward to the next identifier that matches all three conditions
+               (nth 3 entry)))
+            (identifier-exclusion-re (nth 4 entry)))
+        ;; Skip forward to the next identifier that matches all four conditions
         (condition-case nil
             (while (and (< (point) limit)
                         (if continue-p (funcall continue-p) t))
@@ -568,6 +580,7 @@ If supplied, iteration only continues if CONTINUE-P evaluates to true."
                            (get-text-property (point) 'color-identifiers:fontified)))
                   (goto-char (next-property-change (point) nil limit))
                 (if (not (and (looking-back identifier-context-re)
+                              (or (not identifier-exclusion-re) (not (looking-at identifier-exclusion-re)))
                               (looking-at identifier-re)))
                     (progn
                       (forward-char)
