@@ -169,14 +169,14 @@ For cc-mode support within color-identifiers-mode."
 (add-to-list
  'color-identifiers:modes-alist
  `(js2-mode . ("[^.][[:space:]]*"
-              "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
-              (nil font-lock-variable-name-face js2-function-param))))
+	       "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
+	       (nil font-lock-variable-name-face js2-function-param))))
 
 (add-to-list
  'color-identifiers:modes-alist
  `(js3-mode . ("[^.][[:space:]]*"
-              "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
-              (nil font-lock-variable-name-face js3-function-param-face))))
+	       "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
+	       (nil font-lock-variable-name-face js3-function-param-face))))
 
 ;; CoffeeScript
 ;; May need to add the @ to the symbol syntax
@@ -187,16 +187,23 @@ For cc-mode support within color-identifiers-mode."
 
 ;; Sgml mode and the like
 (dolist (maj-mode '(sgml-mode html-mode jinja2-mode))
-(add-to-list
- 'color-identifiers:modes-alist
- `(,maj-mode . ("</?!?"
-              "\\_</?!?\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
-              (nil font-lock-function-name-face)))))
+  (add-to-list
+   'color-identifiers:modes-alist
+   `(,maj-mode . ("</?!?"
+		  "\\_</?!?\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
+		  (nil font-lock-function-name-face)))))
 
 ;; Ruby
 (add-to-list
  'color-identifiers:modes-alist
  `(ruby-mode . ("[^.][[:space:]]*" "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)" (nil))))
+
+;; Groovy
+(add-to-list
+ 'color-identifiers:modes-alist
+ `(groovy-mode . ("[^.][[:space:]]*"
+              "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
+              (nil font-lock-variable-name-face))))
 
 ;; Objective-C
 (add-to-list
