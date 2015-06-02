@@ -301,13 +301,15 @@ For Emacs Lisp support within color-identifiers-mode."
       (goto-char (point-min))
       (condition-case nil
           (while t
-            (let* ((sexp (read (current-buffer)))
-                   (ids (color-identifiers:elisp-declarations-in-sexp sexp))
-                   (strs (-filter 'identity
-                                  (mapcar (lambda (id)
-                                            (when (symbolp id) (symbol-name id)))
-                                          ids))))
-              (setq result (append strs result))))
+            (condition-case nil
+                (let* ((sexp (read (current-buffer)))
+                       (ids (color-identifiers:elisp-declarations-in-sexp sexp))
+                       (strs (-filter 'identity
+                                      (mapcar (lambda (id)
+                                                (when (symbolp id) (symbol-name id)))
+                                              ids))))
+                  (setq result (append strs result)))
+              (invalid-read-syntax nil)))
         (end-of-file nil)))
     (delete-dups result)
     result))
