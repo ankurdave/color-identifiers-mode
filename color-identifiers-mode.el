@@ -62,7 +62,7 @@
     (setq color-identifiers:timer nil)
     (font-lock-remove-keywords nil '((color-identifiers:colorize . default)))
     (ad-deactivate 'enable-theme))
-  (font-lock-fontify-buffer))
+  (font-lock-flush))
 
 ;;;###autoload
 (define-global-minor-mode global-color-identifiers-mode
@@ -547,7 +547,7 @@ The index refers to `color-identifiers:colors'.")
              (point-max)
              (lambda () (if (input-pending-p) (throw 'input-pending nil) t)))
             (setq color-identifiers:color-index-for-identifier result)))))
-    (font-lock-fontify-buffer)))
+    (font-lock-flush)))
 
 (defun color-identifiers:color-identifier (identifier)
   "Look up or generate the hex color for IDENTIFIER.
