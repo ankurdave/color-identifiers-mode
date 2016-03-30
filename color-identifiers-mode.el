@@ -434,6 +434,65 @@ incompatible with Emacs Lisp syntax, such as reader macros (#)."
                    (nil))))
 
 
+;; R support in ess-mode
+(defun color-identifiers:remove-string-or-comment (str)
+  "Remove string or comment in str, based on font lock faces"
+  (let ((remove (memq (get-text-property 0 'face str)
+                      '(font-lock-string-face font-lock-comment-face)))
+        (pos 0)
+        (nextpos)
+        (result ""))
+    (while (setq nextpos (next-single-property-change pos 'face str))
+      (unless remove
+        (setq result (concat result (substring-no-properties str pos nextpos))))
+      (setq pos nextpos)
+      (setq remove (memq (get-text-property pos 'face str)
+                         '(font-lock-string-face font-lock-comment-face))))
+    (unless remove
+      (setq result (concat result (substring-no-properties str pos nextpos))))
+    result))
+
+  (defun color-identifiers:r-get-args (lend)
+    "Extract a list of function arg names. LEND is the point at
+the left parenthesis, after `function' keyword."
+    (let* ((rend (save-excursion
+                  (goto-char lend)
+                  (forward-sexp)
+                  (point)))
+           (str (color-identifiers:remove-string-or-comment
+                 (buffer-substring (1+ lend) (1- rend))))
+           (result))
+      (mapcar (lambda (s) (replace-regexp-in-string "\\s *=.*" "" s))
+              (split-string str "," t " "))))
+
+  (defun color-identifiers:r-get-declarations ()
+    "Extract a list of identifiers declared in the current buffer.
+For Emacs Lisp support within color-identifiers-mode."
+    (let ((result nil))
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward "\\(\\(?:\\w\\|\\s_\\)*\\)\\s *<<?-\\s *\\(function\\s *\\)?" nil t)
+        (unless (memq (get-text-property (match-end 0) 'face)
+                      '(font-lock-string-face font-lock-comment-face))
+
+          (if (match-string 2)
+              (setq result (append (color-identifiers:r-get-args (match-end 2))
+                                   result))
+            (let ((var-name (match-string-no-properties 1)))
+              (unless (string= var-name "")
+                (add-to-list 'result var-name)))))))
+    (delete-dups result)
+    result))
+
+  (color-identifiers:set-declaration-scan-fn
+   'ess-mode 'color-identifiers:r-get-declarations)
+
+  (add-to-list
+   'color-identifiers:modes-alist
+   `(ess-mode "[^$][[:space:]]*" "\\_<\\(\\(?:\\s_\\|\\sw\\)+\\)"
+                   (nil)))
+
+
 ;;; PACKAGE INTERNALS ==========================================================
 
 (defvar color-identifiers:timer nil
