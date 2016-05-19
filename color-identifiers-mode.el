@@ -237,18 +237,20 @@ arguments, loops (for .. in), or for comprehensions."
       (save-excursion
         (goto-char (point-min))
         (while (python-nav-forward-defun)
-          (let ((arglist (sexp-at-point)))
-            (when (and arglist (listp arglist))
-              (let* ((first-arg (car arglist))
-                     (rest (cdr arglist))
-                     (rest-args
-                      (-map (lambda (token) (cadr token))
-                            (-filter (lambda (token) (and (listp token) (eq (car token) '\,))) rest)))
-                     (args-filtered (cons first-arg rest-args))
-                     (params (-map (lambda (token)
-                                     (car (split-string (symbol-name token) "=")))
-                                   args-filtered)))
-                (setq result (append params result)))))))
+          (condition-case nil
+              (let ((arglist (sexp-at-point)))
+                (when (and arglist (listp arglist))
+                  (let* ((first-arg (car arglist))
+                         (rest (cdr arglist))
+                         (rest-args
+                          (-map (lambda (token) (cadr token))
+                                (-filter (lambda (token) (and (listp token) (eq (car token) '\,))) rest)))
+                         (args-filtered (cons first-arg rest-args))
+                         (params (-map (lambda (token)
+                                         (car (split-string (symbol-name token) "=")))
+                                       args-filtered)))
+                    (setq result (append params result)))))
+            (wrong-type-argument nil))))
       ;; Variables that python-mode highlighted with font-lock-variable-name-face
       (save-excursion
         (goto-char (point-min))
