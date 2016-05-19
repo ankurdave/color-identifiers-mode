@@ -445,6 +445,14 @@ incompatible with Emacs Lisp syntax, such as reader macros (#)."
                    "\\_<\\(\\(?:\\s_\\|\\sw\\)+\\)"
                    (nil))))
 
+(dolist (maj-mode '(tuareg-mode sml-mode))
+  (color-identifiers:set-declaration-scan-fn
+   maj-mode 'color-identifiers:cc-mode-get-declarations)
+  (add-to-list
+   'color-identifiers:modes-alist
+   `(,maj-mode . (""
+                  "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\|'\\)*\\)"
+                  (nil font-lock-variable-name-face)))))
 
 ;; R support in ess-mode
 (defun color-identifiers:remove-string-or-comment (str)
