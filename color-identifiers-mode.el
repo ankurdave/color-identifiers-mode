@@ -39,6 +39,7 @@
 (require 'color)
 (require 'dash)
 (require 'python)
+(require 'cl-lib)
 
 (defvar color-identifiers:timer)
 
@@ -382,7 +383,7 @@ For Clojure support within color-identifiers-mode. "
      (append (when (sequencep (car rest))
                (let* ((bindings (append (car rest) nil))
                       (even-indices
-                       (-filter 'evenp (number-sequence 0 (1- (length bindings)))))
+                       (-filter 'cl-evenp (number-sequence 0 (1- (length bindings)))))
                       (binding-forms (-select-by-indices even-indices bindings)))
                  (color-identifiers:clojure-extract-params binding-forms)))
              (color-identifiers:clojure-declarations-in-sexp rest)))
