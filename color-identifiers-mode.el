@@ -41,7 +41,8 @@
 (require 'python)
 (require 'cl-lib)
 
-(defvar color-identifiers:timer)
+(defgroup color-identifiers nil "Color identifiers based on their names."
+  :group 'faces)
 
 ;;;###autoload
 (define-minor-mode color-identifiers-mode
@@ -75,6 +76,16 @@
 
 ;;; USER-VISIBLE VARIABLES AND FUNCTIONS =======================================
 
+(defcustom color-identifiers-coloring-method 'sequential
+  "How to assign colors: sequentially or using the hash of the identifier.
+Sequential color assignment (the default) reduces collisions
+between adjacent identifiers. Hash-based color assignment ensures
+that a particular identifier is always assigned the same color
+across buffers."
+  :type '(choice
+          (const :tag "Sequential" sequential)
+          (const :tag "Hash-based" hash)))
+
 (defvar color-identifiers:modes-alist nil
   "Alist of major modes and the ways to distinguish identifiers in those modes.
 The value of each cons cell provides four constraints for finding identifiers.
@@ -89,7 +100,11 @@ IDENTIFIER-FACES is a list of faces with which the major mode decorates
 identifiers or a function returning such a list.  If the list includes nil,
 unfontified words will be considered.
 IDENTIFIER-EXCLUSION-RE is a regexp that must not match identifiers,
-or nil.")
+or nil.
+
+If a scan function is registered for a mode, candidate
+identifiers will be further restricted to those returned by the
+scan function.")
 
 (defvar color-identifiers:num-colors 10
   "The number of different colors to generate.")
@@ -106,13 +121,22 @@ of the default face.")
 
 (defvar color-identifiers:mode-to-scan-fn-alist nil
   "Alist from major modes to their declaration scan functions, for internal use.
-Modify this using `color-identifiers:set-declaration-scan-fn'.")
+If no scan function is registered for a particular mode, all
+candidates matching the constraints in
+`color-identifiers:modes-alist' will be colored.
+
+Modify this variable using
+`color-identifiers:set-declaration-scan-fn'.")
 
 (defun color-identifiers:set-declaration-scan-fn (mode scan-fn)
   "Register SCAN-FN as the declaration scanner for MODE.
 SCAN-FN must scan the entire current buffer and return the
-identifiers to highlight as a list of strings. See
-`color-identifiers:elisp-get-declarations' for an example."
+identifiers to highlight as a list of strings. Only identifiers
+produced by SCAN-FN that also match all constraints in
+`color-identifiers:modes-alist' will be colored.
+
+See `color-identifiers:elisp-get-declarations' for an example
+SCAN-FN."
   (let ((entry (assoc mode color-identifiers:mode-to-scan-fn-alist)))
     (if entry
         (setcdr entry scan-fn)
@@ -587,13 +611,16 @@ Colors are output to `color-identifiers:colors'."
 
 (defvar color-identifiers:color-index-for-identifier nil
   "Alist of identifier-index pairs for internal use.
-The index refers to `color-identifiers:colors'.")
+The index refers to `color-identifiers:colors'. Only used when
+`color-identifiers-coloring-method' is `sequential'.")
 (make-variable-buffer-local 'color-identifiers:color-index-for-identifier)
 
-(defvar color-identifiers:current-index 0
-  "Current color index for new identifiers, for internal use.
-The index refers to `color-identifiers:colors'.")
-(make-variable-buffer-local 'color-identifiers:current-index)
+(defvar color-identifiers:identifiers nil
+  "Set of identifiers in the current buffer.
+Only used when `color-identifiers-coloring-method' is `hash' and
+a declaration scan function is registered for the current major
+mode. This variable memoizes the result of the declaration scan function.")
+(make-variable-buffer-local 'color-identifiers:identifiers)
 
 (defun color-identifiers:attribute-luminance (attribute)
   "Find the HSL luminance of the specified ATTRIBUTE on the default face."
@@ -610,31 +637,47 @@ The index refers to `color-identifiers:colors'.")
       '(0.0 0.0 0.0))))
 
 (defun color-identifiers:refresh ()
-  "Refresh `color-identifiers:color-index-for-identifier' from current buffer."
+  "Refresh the set of identifiers in the current buffer.
+If `color-identifiers-coloring-method' is `sequential',
+identifiers and their corresponding color indexes are saved to
+`color-identifiers:color-index-for-identifier'.
+
+If `color-identifiers-coloring-method' is `hash' and a
+declaration scan function is registered for the current buffer's
+major mode, identifiers are saved to
+`color-identifiers:identifiers'."
   (interactive)
   (when color-identifiers-mode
-    (if (color-identifiers:get-declaration-scan-fn major-mode)
-        (progn
-          (setq color-identifiers:color-index-for-identifier
-                (-map-indexed (lambda (i identifier)
-                                (cons identifier (% i color-identifiers:num-colors)))
-                              (funcall (color-identifiers:get-declaration-scan-fn major-mode)))))
-      (save-excursion
-        (goto-char (point-min))
-        (catch 'input-pending
-          (let ((i 0)
-                (n color-identifiers:num-colors)
-                (result nil))
-            (color-identifiers:scan-identifiers
-             (lambda (start end)
-               (let ((identifier (buffer-substring-no-properties start end)))
-                 (unless (assoc-string identifier result)
-                   (push (cons identifier (% i n)) result)
-                   (setq i (1+ i)))))
-             (point-max)
-             (lambda () (if (input-pending-p) (throw 'input-pending nil) t)))
-            (setq color-identifiers:color-index-for-identifier result)))))
+    (cond
+     ((eq color-identifiers-coloring-method 'sequential)
+      (setq color-identifiers:color-index-for-identifier
+            (-map-indexed
+             (lambda (i identifier)
+               (cons identifier (% i color-identifiers:num-colors)))
+             (color-identifiers:list-identifiers))))
+     ((and (eq color-identifiers-coloring-method 'hash)
+           (color-identifiers:get-declaration-scan-fn major-mode))
+      (setq color-identifiers:identifiers
+            (color-identifiers:list-identifiers))))
     (color-identifiers:refontify)))
+
+(defun color-identifiers:list-identifiers ()
+  "Return all identifiers in the current buffer."
+  (if (color-identifiers:get-declaration-scan-fn major-mode)
+      (funcall (color-identifiers:get-declaration-scan-fn major-mode))
+    ;; When no scan function is registered, fall back to
+    ;; `color-identifiers:scan-identifiers', which returns all identifiers
+    (save-excursion
+      (goto-char (point-min))
+      (catch 'input-pending
+        (let ((result nil))
+          (color-identifiers:scan-identifiers
+           (lambda (start end)
+             (push (buffer-substring-no-properties start end) result))
+           (point-max)
+           (lambda () (if (input-pending-p) (throw 'input-pending nil) t)))
+          (delete-dups result)
+          result)))))
 
 (defun color-identifiers:refontify ()
   "Refontify the buffer using font-lock."
@@ -645,16 +688,32 @@ The index refers to `color-identifiers:colors'.")
         (font-lock-fontify-buffer)))))
 
 (defun color-identifiers:color-identifier (identifier)
-  "Return the hex color for IDENTIFIER or nil if it has not been
-colorized yet."
-  (let ((entry (assoc-string identifier color-identifiers:color-index-for-identifier)))
-    (when entry
-      (nth (cdr entry) color-identifiers:colors))))
+  "Return the hex color for IDENTIFIER, or nil if it should not
+be colored."
+  (cond
+   ((eq color-identifiers-coloring-method 'sequential)
+    (let ((entry (assoc-string identifier color-identifiers:color-index-for-identifier)))
+      (when entry
+        (nth (cdr entry) color-identifiers:colors))))
+   ((eq color-identifiers-coloring-method 'hash)
+    ;; If there is a declaration scan function for this major mode, the
+    ;; candidate identifier should only be colored if it is in the memoized list
+    ;; of identifiers. Otherwise, it should be colored unconditionally.
+    (when (or (not (color-identifiers:get-declaration-scan-fn major-mode))
+              (member identifier color-identifiers:identifiers))
+      (color-identifiers:hash-identifier identifier)))))
+
+(defun color-identifiers:hash-identifier (identifier)
+  "Return a color for IDENTIFIER based on its hash."
+  (nth (% (sxhash identifier) color-identifiers:num-colors)
+       color-identifiers:colors))
 
 (defun color-identifiers:scan-identifiers (fn limit &optional continue-p)
-  "Run FN on all identifiers from point up to LIMIT.
-Identifiers are defined by `color-identifiers:modes-alist'.
-If supplied, iteration only continues if CONTINUE-P evaluates to true."
+  "Run FN on all candidate identifiers from point up to LIMIT.
+Candidate identifiers are defined by
+`color-identifiers:modes-alist'. Declaration scan functions are
+not applied. If supplied, iteration only continues if CONTINUE-P
+evaluates to true."
   (let ((entry (assoc major-mode color-identifiers:modes-alist)))
     (when entry
       (let ((identifier-context-re (nth 1 entry))
@@ -673,7 +732,7 @@ If supplied, iteration only continues if CONTINUE-P evaluates to true."
                              (and flface-prop (memq flface-prop identifier-faces)))
                            (get-text-property (point) 'color-identifiers:fontified)))
                   (goto-char (next-property-change (point) nil limit))
-                (if (not (and (looking-back identifier-context-re)
+                (if (not (and (looking-back identifier-context-re nil)
                               (or (not identifier-exclusion-re) (not (looking-at identifier-exclusion-re)))
                               (looking-at identifier-re)))
                     (progn
