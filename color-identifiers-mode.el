@@ -705,7 +705,7 @@ be colored."
 
 (defun color-identifiers:hash-identifier (identifier)
   "Return a color for IDENTIFIER based on its hash."
-  (nth (% (sxhash identifier) color-identifiers:num-colors)
+  (nth (% (abs (sxhash identifier)) color-identifiers:num-colors)
        color-identifiers:colors))
 
 (defun color-identifiers:scan-identifiers (fn limit &optional continue-p)
