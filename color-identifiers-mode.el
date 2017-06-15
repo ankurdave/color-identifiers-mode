@@ -532,10 +532,6 @@ For Emacs Lisp support within color-identifiers-mode."
 (defvar color-identifiers:timer nil
   "Timer for running `color-identifiers:refresh'.")
 
-(defvar color-identifiers:identifiers nil
-  "The set of identifiers in the current buffer, for internal use.")
-(make-variable-buffer-local 'color-identifiers:identifiers)
-
 (defvar color-identifiers:colors nil
   "List of generated hex colors for internal use.")
 
@@ -619,12 +615,10 @@ The index refers to `color-identifiers:colors'.")
   (when color-identifiers-mode
     (if (color-identifiers:get-declaration-scan-fn major-mode)
         (progn
-          (setq color-identifiers:identifiers
-                (funcall (color-identifiers:get-declaration-scan-fn major-mode)))
           (setq color-identifiers:color-index-for-identifier
                 (-map-indexed (lambda (i identifier)
                                 (cons identifier (% i color-identifiers:num-colors)))
-                              color-identifiers:identifiers)))
+                              (funcall (color-identifiers:get-declaration-scan-fn major-mode)))))
       (save-excursion
         (goto-char (point-min))
         (catch 'input-pending
@@ -651,20 +645,11 @@ The index refers to `color-identifiers:colors'.")
         (font-lock-fontify-buffer)))))
 
 (defun color-identifiers:color-identifier (identifier)
-  "Look up or generate the hex color for IDENTIFIER.
-IDENTIFIER is looked up in `color-identifiers:color-index-for-identifier' and
-generated if not present there."
-  (unless (and (color-identifiers:get-declaration-scan-fn major-mode)
-               (not (member identifier color-identifiers:identifiers)))
-    (let ((entry (assoc-string identifier color-identifiers:color-index-for-identifier)))
-      (if entry
-          (nth (cdr entry) color-identifiers:colors)
-        ;; If not present, make a temporary color using the rotating index
-        (push (cons identifier (% color-identifiers:current-index
-                                  (length color-identifiers:colors)))
-              color-identifiers:color-index-for-identifier)
-        (setq color-identifiers:current-index
-              (1+ color-identifiers:current-index))))))
+  "Return the hex color for IDENTIFIER or nil if it has not been
+colorized yet."
+  (let ((entry (assoc-string identifier color-identifiers:color-index-for-identifier)))
+    (when entry
+      (nth (cdr entry) color-identifiers:colors))))
 
 (defun color-identifiers:scan-identifiers (fn limit &optional continue-p)
   "Run FN on all identifiers from point up to LIMIT.
