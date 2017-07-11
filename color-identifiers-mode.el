@@ -653,7 +653,8 @@ major mode, identifiers are saved to
       (setq color-identifiers:color-index-for-identifier
             (append (-map-indexed
                      (lambda (i identifier)
-                       (cons identifier (% i color-identifiers:num-colors)))
+                       ;; to make sure subsequently added vars aren't colorized the same add a (point)
+                       (cons identifier (% (+ (point) i) color-identifiers:num-colors)))
                      (-filter (lambda (e)
                                 (cl-notany (lambda (d) (equal e (car d)))
                                            color-identifiers:color-index-for-identifier))
