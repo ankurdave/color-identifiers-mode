@@ -651,10 +651,15 @@ major mode, identifiers are saved to
     (cond
      ((eq color-identifiers-coloring-method 'sequential)
       (setq color-identifiers:color-index-for-identifier
-            (-map-indexed
-             (lambda (i identifier)
-               (cons identifier (% i color-identifiers:num-colors)))
-             (color-identifiers:list-identifiers))))
+            (append (-map-indexed
+                     (lambda (i identifier)
+                       ;; to make sure subsequently added vars aren't colorized the same add a (point)
+                       (cons identifier (% (+ (point) i) color-identifiers:num-colors)))
+                     (-filter (lambda (e)
+                                (cl-notany (lambda (d) (equal e (car d)))
+                                           color-identifiers:color-index-for-identifier))
+                              (color-identifiers:list-identifiers)))
+                    color-identifiers:color-index-for-identifier)))
      ((and (eq color-identifiers-coloring-method 'hash)
            (color-identifiers:get-declaration-scan-fn major-mode))
       (setq color-identifiers:identifiers
