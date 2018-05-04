@@ -613,7 +613,9 @@ Colors are output to `color-identifiers:colors'."
           (funcall choose-candidate (car best))))
       (setq color-identifiers:colors
             (-map (lambda (lab)
-                    (apply 'color-rgb-to-hex (apply 'color-lab-to-srgb lab)))
+                    (let* ((srgb (apply 'color-lab-to-srgb lab))
+                           (rgb (mapcar 'color-clamp srgb)))
+                      (apply 'color-rgb-to-hex rgb)))
                   chosens)))))
 
 (defvar color-identifiers:color-index-for-identifier nil
