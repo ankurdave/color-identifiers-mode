@@ -93,7 +93,7 @@ Sequential color assignment (the default) reduces collisions
 between adjacent identifiers. Hash-based color assignment ensures
 that a particular identifier is always assigned the same color
 across buffers."
-  :type '(repeat :(face)))
+  :type '(repeat face))
 
 (defvar color-identifiers:modes-alist nil
   "Alist of major modes and the ways to distinguish identifiers in those modes.
