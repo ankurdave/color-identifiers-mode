@@ -591,6 +591,7 @@ Colors are output to `color-identifiers:colors'."
          (min-saturation (float color-identifiers:min-color-saturation))
          (saturation-range (- (float color-identifiers:max-color-saturation) min-saturation))
          (bgcolor (color-identifiers:attribute-lab :background))
+         (blocklist (mapcar color-identifiers:foreground-lab color-identifiers-avoid-faces))
          (candidates '())
          (chosens '())
          (n 8)
@@ -615,7 +616,7 @@ Colors are output to `color-identifiers:colors'."
                                   (cons candidate
                                         (-min (-map (lambda (chosen)
                                                       (color-cie-de2000 candidate chosen))
-                                                    (cons bgcolor chosens)))))
+                                                    (cons bgcolor (append chosens blocklist))))))
                                 candidates))
                ;; Take the candidate with the highest min distance
                (best (-max-by (lambda (x y) (> (cdr x) (cdr y))) min-dists)))
@@ -650,6 +651,14 @@ mode. This variable memoizes the result of the declaration scan function.")
 (defun color-identifiers:attribute-lab (attribute)
   "Find the LAB color value of the specified ATTRIBUTE on the default face."
   (let ((rgb (color-name-to-rgb (face-attribute 'default attribute))))
+    (if rgb
+        (apply 'color-srgb-to-lab rgb)
+      '(0.0 0.0 0.0))))
+
+(defun color-identifiers:foreground-lab (face)
+  "Find the LAB color value of the foreground attribute on the
+specified face."
+  (let ((rgb (color-name-to-rgb (face-attribute face :foreground))))
     (if rgb
         (apply 'color-srgb-to-lab rgb)
       '(0.0 0.0 0.0))))
