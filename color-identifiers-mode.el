@@ -88,11 +88,9 @@ across buffers."
 
 
 (defcustom color-identifiers-avoid-faces nil
-  "How to assign colors: sequentially or using the hash of the identifier.
-Sequential color assignment (the default) reduces collisions
-between adjacent identifiers. Hash-based color assignment ensures
-that a particular identifier is always assigned the same color
-across buffers."
+  "Which color faces to avoid: A list of faces whose foreground
+color should be avoided when generating colors, this can be warning colors,
+error colors etc."
   :type '(repeat face))
 
 (defvar color-identifiers:modes-alist nil
