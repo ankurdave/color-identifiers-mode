@@ -591,7 +591,7 @@ Colors are output to `color-identifiers:colors'."
          (min-saturation (float color-identifiers:min-color-saturation))
          (saturation-range (- (float color-identifiers:max-color-saturation) min-saturation))
          (bgcolor (color-identifiers:attribute-lab :background))
-         (blocklist (mapcar color-identifiers:foreground-lab color-identifiers-avoid-faces))
+         (blocklist (mapcar 'color-identifiers:foreground-lab color-identifiers-avoid-faces))
          (candidates '())
          (chosens '())
          (n 8)
