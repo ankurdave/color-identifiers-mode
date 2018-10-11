@@ -589,7 +589,7 @@ Colors are output to `color-identifiers:colors'."
          (min-saturation (float color-identifiers:min-color-saturation))
          (saturation-range (- (float color-identifiers:max-color-saturation) min-saturation))
          (bgcolor (color-identifiers:attribute-lab :background))
-         (blocklist (mapcar 'color-identifiers:foreground-lab color-identifiers-avoid-faces))
+         (avoidlist (mapcar 'color-identifiers:foreground-lab color-identifiers-avoid-faces))
          (candidates '())
          (chosens '())
          (n 8)
@@ -614,7 +614,7 @@ Colors are output to `color-identifiers:colors'."
                                   (cons candidate
                                         (-min (-map (lambda (chosen)
                                                       (color-cie-de2000 candidate chosen))
-                                                    (cons bgcolor (append chosens blocklist))))))
+                                                    (cons bgcolor (append chosens avoidlist))))))
                                 candidates))
                ;; Take the candidate with the highest min distance
                (best (-max-by (lambda (x y) (> (cdr x) (cdr y))) min-dists)))
