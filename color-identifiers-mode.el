@@ -86,6 +86,15 @@ across buffers."
           (const :tag "Sequential" sequential)
           (const :tag "Hash-based" hash)))
 
+
+(defcustom color-identifiers-avoid-faces nil
+  "How to assign colors: sequentially or using the hash of the identifier.
+Sequential color assignment (the default) reduces collisions
+between adjacent identifiers. Hash-based color assignment ensures
+that a particular identifier is always assigned the same color
+across buffers."
+  :type '(alist :value-type (face)))
+
 (defvar color-identifiers:modes-alist nil
   "Alist of major modes and the ways to distinguish identifiers in those modes.
 The value of each cons cell provides four constraints for finding identifiers.
