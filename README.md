@@ -1,7 +1,7 @@
 # Color Identifiers Mode
 Color Identifiers is a minor mode for Emacs that highlights each source code identifier uniquely based on its name. It is inspired by a [post by Evan Brooks](https://medium.com/p/3a6db2743a1e/).
 
-Currently it supports Scala (scala-mode2), JavaScript (js-mode and js2-mode), Ruby, Python, Emacs Lisp, Clojure, C, C++, Java and Go. You can add support for your favorite mode by modifying `color-identifiers:modes-alist` and optionally calling `color-identifiers:set-declaration-scan-fn`.
+Currently it supports Scala (scala-mode2), JavaScript (js-mode and js2-mode), Ruby, Python, Emacs Lisp, Clojure, C, C++, Rust, Java, and Go. You can add support for your favorite mode by modifying `color-identifiers:modes-alist` and optionally calling `color-identifiers:set-declaration-scan-fn`.
 
 [Check out the demo.](http://youtu.be/g4qsiAo2aac)
 
@@ -39,18 +39,21 @@ If you like it, enable it for all supported files by adding the following to you
 
 ## Extras
 
-To make the variables stand out, you can turn off highlighting for all other keywords using code similar to the following:
+To make the variables stand out, you can turn off highlighting for all other keywords in supported modes using a code like:
 ```lisp
-(let ((faces '(font-lock-comment-face font-lock-comment-delimiter-face font-lock-constant-face font-lock-type-face font-lock-function-name-face font-lock-variable-name-face font-lock-keyword-face font-lock-string-face font-lock-builtin-face font-lock-preprocessor-face font-lock-warning-face font-lock-doc-face)))
-  (dolist (face faces)
-    (set-face-attribute face nil :foreground nil :weight 'normal :slant 'normal)))
-
-(set-face-attribute 'font-lock-comment-delimiter-face nil :slant 'italic)
-(set-face-attribute 'font-lock-comment-face nil :slant 'italic)
-(set-face-attribute 'font-lock-doc-face nil :slant 'italic)
-(set-face-attribute 'font-lock-keyword-face nil :weight 'bold)
-(set-face-attribute 'font-lock-builtin-face nil :weight 'bold)
-(set-face-attribute 'font-lock-preprocessor-face nil :weight 'bold)
+(defun myfunc-color-identifiers-mode-hook ()
+  (let ((faces '(font-lock-type-face font-lock-function-name-face font-lock-variable-name-face font-lock-keyword-face font-lock-builtin-face font-lock-preprocessor-face font-lock-constant-face)))
+    (dolist (face faces)
+      (face-remap-add-relative face '((:foreground "" :weight normal :slant normal)))))
+  (face-remap-add-relative 'font-lock-keyword-face '((:weight bold)))
+  (face-remap-add-relative 'font-lock-builtin-face '((:weight bold)))
+  (face-remap-add-relative 'font-lock-preprocessor-face '((:weight bold)))
+  (face-remap-add-relative 'font-lock-function-name-face '((:weight bold)))
+  (face-remap-add-relative 'font-lock-string-face '((:foreground "#b33200000000")))
+  (face-remap-add-relative 'font-lock-constant-face '((:weight bold)))
+  (face-remap-add-relative 'haskell-operator-face '((:foreground "#b33200000000")))
+  )
+(add-hook 'color-identifiers-mode-hook 'myfunc-color-identifiers-mode-hook)
 ```
 
 ![Other Keywords Dimmed](https://raw.github.com/ankurdave/color-identifiers-mode/gh-pages/dim-other-keywords.png)

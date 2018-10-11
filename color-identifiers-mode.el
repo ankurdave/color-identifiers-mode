@@ -63,7 +63,8 @@
       (cancel-timer color-identifiers:timer))
     (setq color-identifiers:timer nil)
     (font-lock-remove-keywords nil '((color-identifiers:colorize . default)))
-    (ad-deactivate 'enable-theme))
+    (ad-deactivate 'enable-theme)
+    (run-hooks 'color-identifiers-mode-hook))
   (color-identifiers:refontify))
 
 ;;;###autoload
@@ -134,6 +135,9 @@ candidates matching the constraints in
 
 Modify this variable using
 `color-identifiers:set-declaration-scan-fn'.")
+
+(defvar color-identifiers-mode-hook nil
+  "List of functions to run every time the mode enabled")
 
 (defun color-identifiers:set-declaration-scan-fn (mode scan-fn)
   "Register SCAN-FN as the declaration scanner for MODE.
