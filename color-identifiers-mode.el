@@ -611,6 +611,7 @@ Colors are output to `color-identifiers:colors'."
     (let ((choose-candidate (lambda (candidate)
                               (delq candidate candidates)
                               (push candidate chosens))))
+      (message "color-identifiers:regenerate-colors:")
       (while (and candidates (< (length chosens) color-identifiers:num-colors))
         (let* (;; For each remaining candidate, find the distance to the closest chosen
                ;; color
@@ -622,6 +623,22 @@ Colors are output to `color-identifiers:colors'."
                                 candidates))
                ;; Take the candidate with the highest min distance
                (best (-max-by (lambda (x y) (> (cdr x) (cdr y))) min-dists)))
+          (message (format "    Chose %s"
+                          (apply 'color-rgb-to-hex (apply 'color-lab-to-srgb (car best)))))
+          (message (format "    HSL %s"
+                          (apply 'color-rgb-to-hsl (apply 'color-lab-to-srgb (car best)))))
+          (let* ((color-and-min-dist
+                  (-min-by
+                   (lambda (x y) (> (cdr x) (cdr y)))
+                   (-map (lambda (chosen)
+                           (cons chosen (color-cie-de2000 (car best) chosen)))
+                         (cons bgcolor (append chosens avoidlist)))))
+                 (color (car color-and-min-dist))
+                 (min-dist (cdr color-and-min-dist)))
+            (message (format "    Closest to %s: dist %f=%f"
+                            (apply 'color-rgb-to-hex (apply 'color-lab-to-srgb color))
+                            min-dist
+                            (cdr best))))
           (funcall choose-candidate (car best))))
       (setq color-identifiers:colors
             (-map (lambda (lab)
