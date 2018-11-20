@@ -44,6 +44,9 @@
 (defgroup color-identifiers nil "Color identifiers based on their names."
   :group 'faces)
 
+(defvar color-identifiers:timer nil
+  "Timer for running `color-identifiers:refresh'.")
+
 ;;;###autoload
 (define-minor-mode color-identifiers-mode
   "Color the identifiers in the current buffer based on their names."
@@ -570,9 +573,6 @@ For Emacs Lisp support within color-identifiers-mode."
 
 
 ;;; PACKAGE INTERNALS ==========================================================
-
-(defvar color-identifiers:timer nil
-  "Timer for running `color-identifiers:refresh'.")
 
 (defvar color-identifiers:colors nil
   "List of generated hex colors for internal use.")
