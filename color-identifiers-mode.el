@@ -766,7 +766,7 @@ evaluates to true."
                              (and flface-prop (memq flface-prop identifier-faces)))
                            (get-text-property (point) 'color-identifiers:fontified)))
                   (goto-char (next-property-change (point) nil limit))
-                (if (not (and (looking-back identifier-context-re nil)
+                (if (not (and (looking-back identifier-context-re (line-beginning-position))
                               (or (not identifier-exclusion-re) (not (looking-at identifier-exclusion-re)))
                               (looking-at identifier-re)))
                     (progn
