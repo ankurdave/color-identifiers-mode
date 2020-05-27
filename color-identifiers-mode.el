@@ -144,6 +144,12 @@ Modify this variable using
 (defvar color-identifiers-mode-hook nil
   "List of functions to run every time the mode enabled")
 
+(defvar color-identifiers:re-not-inside-class-access
+  (rx (or (not (any ".")) line-start)
+      (zero-or-more space))
+  "This regexp matches anything except inside a class instance
+  access, like foo.bar" )
+
 (defun color-identifiers:set-declaration-scan-fn (mode scan-fn)
   "Register SCAN-FN as the declaration scanner for MODE.
 SCAN-FN must scan the entire current buffer and return the
@@ -164,7 +170,7 @@ SCAN-FN."
 ;; Scala
 (add-to-list
  'color-identifiers:modes-alist
- `(scala-mode . ("[^.][[:space:]]*"
+ `(scala-mode . (,color-identifiers:re-not-inside-class-access
                  "\\_<\\([[:lower:]]\\([_]??[[:lower:][:upper:]\\$0-9]+\\)*\\(_+[#:<=>@!%&*+/?\\\\^|~-]+\\|_\\)?\\)"
                  (nil scala-font-lock:var-face font-lock-variable-name-face))))
 
@@ -201,31 +207,31 @@ For cc-mode support within color-identifiers-mode."
 ;;; JavaScript
 (add-to-list
  'color-identifiers:modes-alist
- `(js-mode . ("[^.][[:space:]]*"
+ `(js-mode . (,color-identifiers:re-not-inside-class-access
               "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
               (nil font-lock-variable-name-face))))
 
 (add-to-list
  'color-identifiers:modes-alist
- `(js2-mode . ("[^.][[:space:]]*"
+ `(js2-mode . (,color-identifiers:re-not-inside-class-access
                "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
                (nil font-lock-variable-name-face js2-function-param))))
 
 (add-to-list
  'color-identifiers:modes-alist
- `(js3-mode . ("[^.][[:space:]]*"
+ `(js3-mode . (,color-identifiers:re-not-inside-class-access
                "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
                (nil font-lock-variable-name-face js3-function-param-face))))
 
 (add-to-list
  'color-identifiers:modes-alist
- `(js-jsx-mode . ("[^.][[:space:]]*"
+ `(js-jsx-mode . (,color-identifiers:re-not-inside-class-access
                   "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
                   (nil font-lock-variable-name-face js2-function-param))))
 
 (add-to-list
  'color-identifiers:modes-alist
- `(js2-jsx-mode . ("[^.][[:space:]]*"
+ `(js2-jsx-mode . (,color-identifiers:re-not-inside-class-access
                    "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
                    (nil font-lock-variable-name-face js2-function-param))))
 
@@ -234,7 +240,7 @@ For cc-mode support within color-identifiers-mode."
 ;; (add-hook 'coffee-mode-hook (lambda () (modify-syntax-entry ?\@ "_"))) in .emacs
 (add-to-list
  'color-identifiers:modes-alist
- `(coffee-mode . ("[^.][[:space:]]*" "\\_<\\([a-zA-Z_$@]\\(?:\\s_\\|\\sw\\)*\\)" (nil font-lock-variable-name-face))))
+ `(coffee-mode . (,color-identifiers:re-not-inside-class-access "\\_<\\([a-zA-Z_$@]\\(?:\\s_\\|\\sw\\)*\\)" (nil font-lock-variable-name-face))))
 
 ;; Sgml mode and the like
 (dolist (maj-mode '(sgml-mode html-mode jinja2-mode))
@@ -247,22 +253,22 @@ For cc-mode support within color-identifiers-mode."
 ;; Ruby
 (add-to-list
  'color-identifiers:modes-alist
- `(ruby-mode . ("[^.][[:space:]]*" "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)" (nil))))
+ `(ruby-mode . (,color-identifiers:re-not-inside-class-access "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)" (nil))))
 
 ;; R
 (add-to-list
  'color-identifiers:modes-alist
- `(R-mode . ("[^.][[:space:]]*" "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)" (nil))))
+ `(R-mode . (,color-identifiers:re-not-inside-class-access "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)" (nil))))
 
 ;; SQL
 (add-to-list
  'color-identifiers:modes-alist
- `(sql-mode . ("[^.][[:space:]]*" "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)" (nil))))
+ `(sql-mode . (,color-identifiers:re-not-inside-class-access "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)" (nil))))
 
 ;; Groovy
 (add-to-list
  'color-identifiers:modes-alist
- `(groovy-mode . ("[^.][[:space:]]*"
+ `(groovy-mode . (,color-identifiers:re-not-inside-class-access
                   "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
                   (nil font-lock-variable-name-face))))
 
@@ -277,7 +283,7 @@ For cc-mode support within color-identifiers-mode."
 ;; Golang
 (add-to-list
  'color-identifiers:modes-alist
- `(go-mode . ("[^.][[:space:]]*"
+ `(go-mode . (,color-identifiers:re-not-inside-class-access
               "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
               (nil font-lock-variable-name-face))))
 
@@ -327,8 +333,7 @@ arguments, loops (for .. in), or for comprehensions."
 
 (add-to-list
  'color-identifiers:modes-alist
- `(python-mode . (,(rx (or (not (any ".")) line-start)
-                       (zero-or-more space))
+ `(python-mode . (,color-identifiers:re-not-inside-class-access
                   "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
                   (nil font-lock-type-face font-lock-variable-name-face))))
 
