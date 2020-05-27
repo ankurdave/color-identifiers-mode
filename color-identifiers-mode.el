@@ -174,18 +174,16 @@ For cc-mode support within color-identifiers-mode."
     ;; Variables that cc-mode highlighted with font-lock-variable-name-face
     (save-excursion
       (goto-char (point-min))
-      (catch 'end-of-file
-        (while t
-          (let ((next-change (next-property-change (point))))
-            (if (not next-change)
-                (throw 'end-of-file nil)
-              (goto-char next-change)
-              (when (or (eq (get-text-property (point) 'face) 'font-lock-variable-name-face)
-                        ;; If we fontified it in the past, assume it should
-                        ;; continue to be fontified. This avoids alternating
-                        ;; between fontified and unfontified.
-                        (get-text-property (point) 'color-identifiers:fontified))
-                (push (substring-no-properties (symbol-name (symbol-at-point))) result)))))))
+      (let ((next-change (next-property-change (point))))
+        (while next-change
+          (goto-char next-change)
+          (when (or (eq (get-text-property (point) 'face) 'font-lock-variable-name-face)
+                    ;; If we fontified it in the past, assume it should
+                    ;; continue to be fontified. This avoids alternating
+                    ;; between fontified and unfontified.
+                    (get-text-property (point) 'color-identifiers:fontified))
+            (push (substring-no-properties (symbol-name (symbol-at-point))) result))
+          (setq next-change (next-property-change (point))))))
     (delete-dups result)
     result))
 
@@ -310,18 +308,16 @@ arguments, loops (for .. in), or for comprehensions."
       ;; Variables that python-mode highlighted with font-lock-variable-name-face
       (save-excursion
         (goto-char (point-min))
-        (catch 'end-of-file
-          (while t
-            (let ((next-change (next-property-change (point))))
-              (if (not next-change)
-                  (throw 'end-of-file nil)
-                (goto-char next-change)
-                (when (or (eq (get-text-property (point) 'face) 'font-lock-variable-name-face)
-                          ;; If we fontified it in the past, assume it should
-                          ;; continue to be fontified. This avoids alternating
-                          ;; between fontified and unfontified.
-                          (get-text-property (point) 'color-identifiers:fontified))
-                  (push (substring-no-properties (symbol-name (symbol-at-point))) result)))))))
+        (let ((next-change (next-property-change (point))))
+          (while next-change
+            (goto-char next-change)
+            (when (or (eq (get-text-property (point) 'face) 'font-lock-variable-name-face)
+                      ;; If we fontified it in the past, assume it should
+                      ;; continue to be fontified. This avoids alternating
+                      ;; between fontified and unfontified.
+                      (get-text-property (point) 'color-identifiers:fontified))
+              (push (substring-no-properties (symbol-name (symbol-at-point))) result))
+            (setq next-change (next-property-change (point))))))
       (delete-dups result)
       result))
   (color-identifiers:set-declaration-scan-fn
