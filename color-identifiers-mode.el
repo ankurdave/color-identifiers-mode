@@ -101,9 +101,10 @@ error colors etc."
   "Alist of major modes and the ways to distinguish identifiers in those modes.
 The value of each cons cell provides four constraints for finding identifiers.
 A word must match all four constraints to be colored as an identifier.  The
-value has the form (IDENTIFIER-CONTEXT-RE IDENTIFIER-RE IDENTIFIER-FACES
+cons cell has the form (MAJOR-MODE IDENTIFIER-CONTEXT-RE IDENTIFIER-RE IDENTIFIER-FACES
 IDENTIFIER-EXCLUSION-RE).
 
+MAJOR-MODE is the name of the mode in which this rule should be used.
 IDENTIFIER-CONTEXT-RE is a regexp matching the text that must precede an
 identifier.
 IDENTIFIER-RE is a regexp whose first capture group matches identifiers.
