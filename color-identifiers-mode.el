@@ -40,6 +40,7 @@
 (require 'dash)
 (require 'python)
 (require 'cl-lib)
+(require 'rx)
 
 (defgroup color-identifiers nil "Color identifiers based on their names."
   :group 'faces)
@@ -330,7 +331,8 @@ arguments, loops (for .. in), or for comprehensions."
 
 (add-to-list
  'color-identifiers:modes-alist
- `(python-mode . ("[^.][[:space:]]*"
+ `(python-mode . (,(rx (or (not (any ".")) line-start)
+                       (zero-or-more space))
                   "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
                   (nil font-lock-type-face font-lock-variable-name-face))))
 
