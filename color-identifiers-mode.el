@@ -364,8 +364,7 @@ For Emacs Lisp support within color-identifiers-mode."
          (let ((ids (color-identifiers:elisp-declarations-in-sexp cons)))
            (when ids
              (setq result (append ids result)))))
-       result))
-    (other-object nil)))
+       result))))
 
 (defun color-identifiers:elisp-get-declarations ()
   "Extract a list of identifiers declared in the current buffer.
@@ -471,8 +470,7 @@ For Clojure support within color-identifiers-mode. "
              (setq result (append ids result)))))
        result))
     ((pred arrayp)
-     (apply 'append (mapcar 'color-identifiers:clojure-declarations-in-sexp sexp)))
-    (other-object nil)))
+     (apply 'append (mapcar 'color-identifiers:clojure-declarations-in-sexp sexp)))))
 
 (defun color-identifiers:clojure-get-declarations ()
   "Extract a list of identifiers declared in the current buffer.
