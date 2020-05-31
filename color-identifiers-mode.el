@@ -563,7 +563,7 @@ For Emacs Lisp support within color-identifiers-mode."
                                    result))
             (let ((var-name (match-string-no-properties 1)))
               (unless (string= var-name "")
-                (add-to-list 'result var-name)))))))
+                (cl-pushnew var-name result)))))))
     (delete-dups result)
     result))
 
@@ -606,12 +606,12 @@ Colors are output to `color-identifiers:colors'."
     ;; converted to LAB
     (dotimes (h n)
       (dotimes (s n)
-        (add-to-list
-         'candidates
+        (cl-pushnew
          (apply 'color-srgb-to-lab
                 (color-hsl-to-rgb (/ h n-1)
                                   (+ min-saturation (* (/ s n-1) saturation-range))
-                                  luminance)))))
+                                  luminance))
+         candidates)))
     (let ((choose-candidate (lambda (candidate)
                               (delq candidate candidates)
                               (push candidate chosens))))
