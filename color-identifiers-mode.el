@@ -543,8 +543,7 @@ the left parenthesis, after `function' keyword."
                   (forward-sexp)
                   (point)))
            (str (color-identifiers:remove-string-or-comment
-                 (buffer-substring (1+ lend) (1- rend))))
-           (result))
+                 (buffer-substring (1+ lend) (1- rend)))))
       (mapcar (lambda (s) (replace-regexp-in-string "\\s *=.*" "" s))
               (split-string str "," t " "))))
 
