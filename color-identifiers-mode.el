@@ -1,4 +1,4 @@
-;;; color-identifiers-mode.el --- Color identifiers based on their names
+;;; color-identifiers-mode.el --- Color identifiers based on their names -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2014 Ankur Dave
 
