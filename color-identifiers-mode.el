@@ -634,18 +634,16 @@ Colors are output to `color-identifiers:colors'."
                       (apply 'color-rgb-to-hex rgb)))
                   chosens)))))
 
-(defvar color-identifiers:color-index-for-identifier nil
+(defvar-local color-identifiers:color-index-for-identifier nil
   "Alist of identifier-index pairs for internal use.
 The index refers to `color-identifiers:colors'. Only used when
 `color-identifiers-coloring-method' is `sequential'.")
-(make-variable-buffer-local 'color-identifiers:color-index-for-identifier)
 
-(defvar color-identifiers:identifiers nil
+(defvar-local color-identifiers:identifiers nil
   "Set of identifiers in the current buffer.
 Only used when `color-identifiers-coloring-method' is `hash' and
 a declaration scan function is registered for the current major
 mode. This variable memoizes the result of the declaration scan function.")
-(make-variable-buffer-local 'color-identifiers:identifiers)
 
 (defun color-identifiers:attribute-luminance (attribute)
   "Find the HSL luminance of the specified ATTRIBUTE on the default face."
