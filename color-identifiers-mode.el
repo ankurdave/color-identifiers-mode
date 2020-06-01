@@ -309,7 +309,7 @@ arguments, loops (for .. in), or for comprehensions."
                                 (-filter (lambda (token) (and (listp token) (eq (car token) '\,))) rest)))
                          (args-filtered (cons first-arg rest-args))
                          (params (-map (lambda (token)
-                                         (car (split-string (symbol-name token) "=")))
+                                         (car (split-string (symbol-name token) "[=:]")))
                                        args-filtered)))
                     (setq result (append params result)))))
             (wrong-type-argument nil))))
