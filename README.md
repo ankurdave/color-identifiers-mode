@@ -19,7 +19,7 @@ Color Identifiers is in [MELPA](https://github.com/milkypostman/melpa/pull/1416)
 ```lisp
 (package-initialize)
 (add-to-list 'package-archives
-             '("melpa" . "http://melpa.milkbox.net/packages/") t)
+             '("melpa" . "https://melpa.org/packages/") t)
 (package-refresh-contents)
 ```
 
