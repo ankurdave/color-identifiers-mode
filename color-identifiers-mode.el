@@ -67,8 +67,7 @@
       (cancel-timer color-identifiers:timer))
     (setq color-identifiers:timer nil)
     (font-lock-remove-keywords nil '((color-identifiers:colorize . default)))
-    (ad-deactivate 'enable-theme)
-    (run-hooks 'color-identifiers-mode-hook))
+    (ad-deactivate 'enable-theme))
   (color-identifiers:refontify))
 
 ;;;###autoload
