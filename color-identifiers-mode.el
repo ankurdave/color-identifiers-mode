@@ -194,7 +194,7 @@ For cc-mode support within color-identifiers-mode."
     (delete-dups result)
     result))
 
-(dolist (maj-mode '(c-mode c++-mode java-mode rust-mode rustic-mode meson-mode typescript-mode))
+(dolist (maj-mode '(c-mode c++-mode java-mode rust-mode rustic-mode meson-mode typescript-mode cuda-mode))
   (color-identifiers:set-declaration-scan-fn
    maj-mode 'color-identifiers:cc-mode-get-declarations)
   (add-to-list
