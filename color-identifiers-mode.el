@@ -277,7 +277,9 @@ For cc-mode support within color-identifiers-mode."
 ;; Ruby
 (add-to-list
  'color-identifiers:modes-alist
- `(ruby-mode . (,color-identifiers:re-not-inside-class-access "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)" (nil))))
+ `(ruby-mode . (,color-identifiers:re-not-inside-class-access
+                "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
+                (nil tree-sitter-hl-face:variable))))
 
 ;; R
 (add-to-list
