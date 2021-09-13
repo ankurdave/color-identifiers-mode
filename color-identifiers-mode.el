@@ -57,6 +57,11 @@
           (run-with-idle-timer 5 t 'color-identifiers:refresh)))
   )
 
+(defvar-local color-identifiers:colorize-behavior nil
+  "For internal use. Stores the element of
+`color-identifiers:modes-alist' that is relevant to the current
+major mode")
+
 ;;;###autoload
 (define-minor-mode color-identifiers-mode
   "Color the identifiers in the current buffer based on their names."
@@ -64,12 +69,18 @@
   :lighter " ColorIds"
   (if color-identifiers-mode
       (progn
-        (color-identifiers:regenerate-colors)
-        (color-identifiers:refresh)
-        (add-to-list 'font-lock-extra-managed-props 'color-identifiers:fontified)
-        (font-lock-add-keywords nil '((color-identifiers:colorize . default)) t)
-        (color-identifiers:enable-timer)
-        (ad-activate 'enable-theme))
+        (setq color-identifiers:colorize-behavior
+              (assoc major-mode color-identifiers:modes-alist))
+        (if (not color-identifiers:colorize-behavior)
+            (progn
+              (print "Major mode is not supported by color-identifiers, disabling")
+              (color-identifiers-mode -1))
+          (color-identifiers:regenerate-colors)
+          (color-identifiers:refresh)
+          (add-to-list 'font-lock-extra-managed-props 'color-identifiers:fontified)
+          (font-lock-add-keywords nil '((color-identifiers:colorize . default)) t)
+          (color-identifiers:enable-timer)
+          (ad-activate 'enable-theme)))
     (when color-identifiers:timer
       (cancel-timer color-identifiers:timer))
     (font-lock-remove-keywords nil '((color-identifiers:colorize . default)))
@@ -753,35 +764,33 @@ Candidate identifiers are defined by
 `color-identifiers:modes-alist'. Declaration scan functions are
 not applied. If supplied, iteration only continues if CONTINUE-P
 evaluates to true."
-  (let ((entry (assoc major-mode color-identifiers:modes-alist)))
-    (when entry
-      (let ((identifier-context-re (nth 1 entry))
-            (identifier-re (nth 2 entry))
-            (identifier-faces
-             (if (functionp (nth 3 entry))
-                 (funcall (nth 3 entry))
-               (nth 3 entry)))
-            (identifier-exclusion-re (nth 4 entry)))
-        ;; Skip forward to the next identifier that matches all four conditions
-        (condition-case nil
-            (while (and (< (point) limit)
-                        (if continue-p (funcall continue-p) t))
-              (if (not (or (memq (get-text-property (point) 'face) identifier-faces)
-                           (let ((flface-prop (get-text-property (point) 'font-lock-face)))
-                             (and flface-prop (memq flface-prop identifier-faces)))
-                           (get-text-property (point) 'color-identifiers:fontified)))
-                  (goto-char (next-property-change (point) nil limit))
-                (if (not (and (looking-back identifier-context-re (line-beginning-position))
-                              (or (not identifier-exclusion-re) (not (looking-at identifier-exclusion-re)))
-                              (looking-at identifier-re)))
-                    (progn
-                      (forward-char)
-                      (re-search-forward identifier-re limit)
-                      (goto-char (match-beginning 0)))
-                  ;; Found an identifier. Run `fn' on it
-                  (funcall fn (match-beginning 1) (match-end 1))
-                  (goto-char (match-end 1)))))
-          (search-failed nil))))))
+  (let ((identifier-context-re (nth 1 color-identifiers:colorize-behavior))
+        (identifier-re (nth 2 color-identifiers:colorize-behavior))
+        (identifier-faces
+         (if (functionp (nth 3 color-identifiers:colorize-behavior))
+             (funcall (nth 3 color-identifiers:colorize-behavior))
+           (nth 3 color-identifiers:colorize-behavior)))
+        (identifier-exclusion-re (nth 4 color-identifiers:colorize-behavior)))
+    ;; Skip forward to the next identifier that matches all four conditions
+    (condition-case nil
+        (while (and (< (point) limit)
+                    (if continue-p (funcall continue-p) t))
+          (if (not (or (memq (get-text-property (point) 'face) identifier-faces)
+                       (let ((flface-prop (get-text-property (point) 'font-lock-face)))
+                         (and flface-prop (memq flface-prop identifier-faces)))
+                       (get-text-property (point) 'color-identifiers:fontified)))
+              (goto-char (next-property-change (point) nil limit))
+            (if (not (and (looking-back identifier-context-re (line-beginning-position))
+                          (or (not identifier-exclusion-re) (not (looking-at identifier-exclusion-re)))
+                          (looking-at identifier-re)))
+                (progn
+                  (forward-char)
+                  (re-search-forward identifier-re limit)
+                  (goto-char (match-beginning 0)))
+              ;; Found an identifier. Run `fn' on it
+              (funcall fn (match-beginning 1) (match-end 1))
+              (goto-char (match-end 1)))))
+      (search-failed nil))))
 
 (defun color-identifiers:colorize (limit)
   (color-identifiers:scan-identifiers
