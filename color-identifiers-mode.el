@@ -318,7 +318,8 @@ For cc-mode support within color-identifiers-mode."
 For Python support within color-identifiers-mode.  Supports
 function arguments and variable assignment, but not yet lambda
 arguments, loops (for .. in), or for comprehensions."
-    (let ((result nil))
+    (let ((result nil)
+          (identifier-faces (color-identifiers:curr-identifier-faces)))
       ;; Function arguments
       (save-excursion
         (goto-char (point-min))
@@ -337,18 +338,19 @@ arguments, loops (for .. in), or for comprehensions."
                                        args-filtered)))
                     (setq result (append params result)))))
             (wrong-type-argument nil))))
-      ;; Variables that python-mode highlighted with font-lock-variable-name-face
+      ;; Entities that python-mode highlighted as variables
       (save-excursion
         (goto-char (point-min))
         (let ((next-change (next-property-change (point))))
           (while next-change
             (goto-char next-change)
-            (when (or (eq (get-text-property (point) 'face) 'font-lock-variable-name-face)
-                      ;; If we fontified it in the past, assume it should
-                      ;; continue to be fontified. This avoids alternating
-                      ;; between fontified and unfontified.
-                      (get-text-property (point) 'color-identifiers:fontified))
-              (push (substring-no-properties (symbol-name (symbol-at-point))) result))
+            (let ((face-at-point (get-text-property (point) 'face)))
+              (when (or (and face-at-point (memq face-at-point identifier-faces))
+                        ;; If we fontified it in the past, assume it should
+                        ;; continue to be fontified. This avoids alternating
+                        ;; between fontified and unfontified.
+                        (get-text-property (point) 'color-identifiers:fontified))
+                (push (substring-no-properties (symbol-name (symbol-at-point))) result)))
             (setq next-change (next-property-change (point))))))
       (delete-dups result)
       result))
@@ -359,7 +361,7 @@ arguments, loops (for .. in), or for comprehensions."
  'color-identifiers:modes-alist
  `(python-mode . (,color-identifiers:re-not-inside-class-access
                   "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
-                  (nil font-lock-type-face font-lock-variable-name-face))))
+                  (nil font-lock-variable-name-face tree-sitter-hl-face:variable))))
 
 ;; Emacs Lisp
 (defun color-identifiers:elisp-declarations-in-sexp (sexp)
