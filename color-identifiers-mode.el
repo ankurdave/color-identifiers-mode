@@ -105,9 +105,10 @@ error colors etc."
 
 (defvar color-identifiers:modes-alist nil
   "Alist of major modes and the ways to distinguish identifiers in those modes.
-The value of each cons cell provides four constraints for finding identifiers.
-A word must match all four constraints to be colored as an identifier.  The
-cons cell has the form (MAJOR-MODE IDENTIFIER-CONTEXT-RE IDENTIFIER-RE IDENTIFIER-FACES
+The value of each cons cell provides four constraints for finding
+identifiers.  A word must match all four constraints to be
+colored as an identifier.  The cons cell has the form (MAJOR-MODE
+IDENTIFIER-CONTEXT-RE IDENTIFIER-RE IDENTIFIER-FACES
 IDENTIFIER-EXCLUSION-RE).
 
 MAJOR-MODE is the name of the mode in which this rule should be used.
