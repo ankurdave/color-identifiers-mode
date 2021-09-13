@@ -182,6 +182,11 @@ SCAN-FN."
       (add-to-list 'color-identifiers:mode-to-scan-fn-alist
                    (cons mode scan-fn)))))
 
+(defsubst color-identifiers:curr-identifier-faces ()
+  (if (functionp (nth 3 color-identifiers:colorize-behavior))
+      (funcall (nth 3 color-identifiers:colorize-behavior))
+    (nth 3 color-identifiers:colorize-behavior)))
+
 ;;; MAJOR MODE SUPPORT =========================================================
 
 ;; Scala
@@ -195,19 +200,21 @@ SCAN-FN."
 (defun color-identifiers:cc-mode-get-declarations ()
   "Extract a list of identifiers declared in the current buffer.
 For cc-mode support within color-identifiers-mode."
-  (let ((result nil))
-    ;; Variables that cc-mode highlighted with font-lock-variable-name-face
+  (let ((result nil)
+        (identifier-faces (color-identifiers:curr-identifier-faces)))
+    ;; Entities that cc-mode highlighted as variables
     (save-excursion
       (goto-char (point-min))
       (let ((next-change (next-property-change (point))))
         (while next-change
           (goto-char next-change)
-          (when (or (eq (get-text-property (point) 'face) 'font-lock-variable-name-face)
-                    ;; If we fontified it in the past, assume it should
-                    ;; continue to be fontified. This avoids alternating
-                    ;; between fontified and unfontified.
-                    (get-text-property (point) 'color-identifiers:fontified))
-            (push (substring-no-properties (symbol-name (symbol-at-point))) result))
+          (let ((face-at-point (get-text-property (point) 'face)))
+            (when (or (and face-at-point (memq face-at-point identifier-faces))
+                      ;; If we fontified it in the past, assume it should
+                      ;; continue to be fontified. This avoids alternating
+                      ;; between fontified and unfontified.
+                      (get-text-property (point) 'color-identifiers:fontified))
+              (push (substring-no-properties (symbol-name (symbol-at-point))) result)))
           (setq next-change (next-property-change (point))))))
     (delete-dups result)
     result))
@@ -219,7 +226,7 @@ For cc-mode support within color-identifiers-mode."
    'color-identifiers:modes-alist
    `(,maj-mode . (""
                   "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
-                  (nil font-lock-variable-name-face)))))
+                  (nil font-lock-variable-name-face tree-sitter-hl-face:variable)))))
 
 ;;; JavaScript
 (add-to-list
