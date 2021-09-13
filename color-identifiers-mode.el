@@ -311,7 +311,7 @@ For cc-mode support within color-identifiers-mode."
  'color-identifiers:modes-alist
  `(go-mode . (,color-identifiers:re-not-inside-class-access
               "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
-              (nil font-lock-variable-name-face))))
+              (nil font-lock-variable-name-face tree-sitter-hl-face:variable))))
 
 ;; Python
 (when (fboundp 'python-nav-forward-defun)
