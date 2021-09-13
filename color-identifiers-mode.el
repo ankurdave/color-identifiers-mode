@@ -194,7 +194,7 @@ SCAN-FN."
  'color-identifiers:modes-alist
  `(scala-mode . (,color-identifiers:re-not-inside-class-access
                  "\\_<\\([[:lower:]]\\([_]??[[:lower:][:upper:]\\$0-9]+\\)*\\(_+[#:<=>@!%&*+/?\\\\^|~-]+\\|_\\)?\\)"
-                 (nil scala-font-lock:var-face font-lock-variable-name-face))))
+                 (nil scala-font-lock:var-face font-lock-variable-name-face tree-sitter-hl-face:variable))))
 
 ;; C/C++
 (defun color-identifiers:cc-mode-get-declarations ()
