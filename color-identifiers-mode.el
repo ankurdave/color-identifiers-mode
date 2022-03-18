@@ -48,6 +48,15 @@
 (defvar color-identifiers:timer nil
   "Timer for running `color-identifiers:refresh'.")
 
+(defun color-identifiers:enable-timer ()
+  (if color-identifiers:timer
+      ;; Someone set the timer. Activate in case we cancelled it.
+      (unless (memq color-identifiers:timer timer-idle-list)
+        (timer-activate-when-idle color-identifiers:timer))
+    (setq color-identifiers:timer
+          (run-with-idle-timer 5 t 'color-identifiers:refresh)))
+  )
+
 ;;;###autoload
 (define-minor-mode color-identifiers-mode
   "Color the identifiers in the current buffer based on their names."
@@ -59,13 +68,10 @@
         (color-identifiers:refresh)
         (add-to-list 'font-lock-extra-managed-props 'color-identifiers:fontified)
         (font-lock-add-keywords nil '((color-identifiers:colorize . default)) t)
-        (unless color-identifiers:timer
-          (setq color-identifiers:timer
-                (run-with-idle-timer 5 t 'color-identifiers:refresh)))
+        (color-identifiers:enable-timer)
         (ad-activate 'enable-theme))
     (when color-identifiers:timer
       (cancel-timer color-identifiers:timer))
-    (setq color-identifiers:timer nil)
     (font-lock-remove-keywords nil '((color-identifiers:colorize . default)))
     (ad-deactivate 'enable-theme))
   (color-identifiers:refontify))
@@ -99,9 +105,10 @@ error colors etc."
 
 (defvar color-identifiers:modes-alist nil
   "Alist of major modes and the ways to distinguish identifiers in those modes.
-The value of each cons cell provides four constraints for finding identifiers.
-A word must match all four constraints to be colored as an identifier.  The
-cons cell has the form (MAJOR-MODE IDENTIFIER-CONTEXT-RE IDENTIFIER-RE IDENTIFIER-FACES
+The value of each cons cell provides four constraints for finding
+identifiers.  A word must match all four constraints to be
+colored as an identifier.  The cons cell has the form (MAJOR-MODE
+IDENTIFIER-CONTEXT-RE IDENTIFIER-RE IDENTIFIER-FACES
 IDENTIFIER-EXCLUSION-RE).
 
 MAJOR-MODE is the name of the mode in which this rule should be used.
