@@ -561,22 +561,22 @@ incompatible with Emacs Lisp syntax, such as reader macros (#)."
       (setq result (concat result (substring-no-properties str pos nextpos))))
     result))
 
-  (defun color-identifiers:r-get-args (lend)
-    "Extract a list of function arg names. LEND is the point at
+(defun color-identifiers:r-get-args (lend)
+  "Extract a list of function arg names. LEND is the point at
 the left parenthesis, after `function' keyword."
-    (let* ((rend (save-excursion
-                  (goto-char lend)
-                  (forward-sexp)
-                  (point)))
-           (str (color-identifiers:remove-string-or-comment
-                 (buffer-substring (1+ lend) (1- rend)))))
-      (mapcar (lambda (s) (replace-regexp-in-string "\\s *=.*" "" s))
-              (split-string str "," t " "))))
+  (let* ((rend (save-excursion
+                 (goto-char lend)
+                 (forward-sexp)
+                 (point)))
+         (str (color-identifiers:remove-string-or-comment
+               (buffer-substring (1+ lend) (1- rend)))))
+    (mapcar (lambda (s) (replace-regexp-in-string "\\s *=.*" "" s))
+            (split-string str "," t " "))))
 
-  (defun color-identifiers:r-get-declarations ()
-    "Extract a list of identifiers declared in the current buffer.
+(defun color-identifiers:r-get-declarations ()
+  "Extract a list of identifiers declared in the current buffer.
 For Emacs Lisp support within color-identifiers-mode."
-    (let ((result nil))
+  (let ((result nil))
     (save-excursion
       (goto-char (point-min))
       (while (re-search-forward "\\(\\(?:\\w\\|\\s_\\)*\\)\\s *<<?-\\s *\\(function\\s *\\)?" nil t)
@@ -592,13 +592,13 @@ For Emacs Lisp support within color-identifiers-mode."
     (delete-dups result)
     result))
 
-  (color-identifiers:set-declaration-scan-fn
-   'ess-mode 'color-identifiers:r-get-declarations)
+(color-identifiers:set-declaration-scan-fn
+ 'ess-mode 'color-identifiers:r-get-declarations)
 
-  (add-to-list
-   'color-identifiers:modes-alist
-   `(ess-mode "[^$][[:space:]]*" "\\_<\\(\\(?:\\s_\\|\\sw\\)+\\)"
-                   (nil)))
+(add-to-list
+ 'color-identifiers:modes-alist
+ `(ess-mode "[^$][[:space:]]*" "\\_<\\(\\(?:\\s_\\|\\sw\\)+\\)"
+            (nil)))
 
 
 ;;; PACKAGE INTERNALS ==========================================================
