@@ -48,13 +48,16 @@
 (defvar color-identifiers:timer nil
   "Timer for running `color-identifiers:refresh'.")
 
+(defvar color-identifiers:recoloring-delay 5
+  "The delay before running `color-identifiers:refresh'.")
+
 (defun color-identifiers:enable-timer ()
   (if color-identifiers:timer
       ;; Someone set the timer. Activate in case we cancelled it.
       (unless (memq color-identifiers:timer timer-idle-list)
         (timer-activate-when-idle color-identifiers:timer))
     (setq color-identifiers:timer
-          (run-with-idle-timer 5 t 'color-identifiers:refresh)))
+          (run-with-idle-timer color-identifiers:recoloring-delay t 'color-identifiers:refresh)))
   )
 
 (defvar-local color-identifiers:colorize-behavior nil
