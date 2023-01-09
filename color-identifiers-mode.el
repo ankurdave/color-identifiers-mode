@@ -38,7 +38,6 @@
 (require 'advice)
 (require 'color)
 (require 'dash)
-(require 'python)
 (require 'cl-lib)
 (require 'rx)
 
@@ -317,50 +316,50 @@ For cc-mode support within color-identifiers-mode."
               (nil font-lock-variable-name-face tree-sitter-hl-face:variable))))
 
 ;; Python
-(when (fboundp 'python-nav-forward-defun)
-  (defun color-identifiers:python-get-declarations ()
-    "Extract a list of identifiers declared in the current buffer.
+(cl-eval-when 'compile (require 'python))
+(defun color-identifiers:python-get-declarations ()
+  "Extract a list of identifiers declared in the current buffer.
 For Python support within color-identifiers-mode.  Supports
 function arguments and variable assignment, but not yet lambda
 arguments, loops (for .. in), or for comprehensions."
-    (let ((result nil)
-          (identifier-faces (color-identifiers:curr-identifier-faces)))
-      ;; Function arguments
-      (save-excursion
-        (goto-char (point-min))
-        (while (python-nav-forward-defun)
-          (condition-case nil
-              (let ((arglist (sexp-at-point)))
-                (when (and arglist (listp arglist))
-                  (let* ((first-arg (car arglist))
-                         (rest (cdr arglist))
-                         (rest-args
-                          (-map (lambda (token) (cadr token))
-                                (-filter (lambda (token) (and (listp token) (eq (car token) '\,))) rest)))
-                         (args-filtered (cons first-arg rest-args))
-                         (params (-map (lambda (token)
-                                         (car (split-string (symbol-name token) "[=:]")))
-                                       args-filtered)))
-                    (setq result (append params result)))))
-            (wrong-type-argument nil))))
-      ;; Entities that python-mode highlighted as variables
-      (save-excursion
-        (goto-char (point-min))
-        (let ((next-change (next-property-change (point))))
-          (while next-change
-            (goto-char next-change)
-            (let ((face-at-point (get-text-property (point) 'face)))
-              (when (or (and face-at-point (memq face-at-point identifier-faces))
-                        ;; If we fontified it in the past, assume it should
-                        ;; continue to be fontified. This avoids alternating
-                        ;; between fontified and unfontified.
-                        (get-text-property (point) 'color-identifiers:fontified))
-                (push (substring-no-properties (symbol-name (symbol-at-point))) result)))
-            (setq next-change (next-property-change (point))))))
-      (delete-dups result)
-      result))
-  (color-identifiers:set-declaration-scan-fn
-   'python-mode 'color-identifiers:python-get-declarations))
+  (let ((result nil)
+        (identifier-faces (color-identifiers:curr-identifier-faces)))
+    ;; Function arguments
+    (save-excursion
+      (goto-char (point-min))
+      (while (python-nav-forward-defun)
+        (condition-case nil
+            (let ((arglist (sexp-at-point)))
+              (when (and arglist (listp arglist))
+                (let* ((first-arg (car arglist))
+                       (rest (cdr arglist))
+                       (rest-args
+                        (-map (lambda (token) (cadr token))
+                              (-filter (lambda (token) (and (listp token) (eq (car token) '\,))) rest)))
+                       (args-filtered (cons first-arg rest-args))
+                       (params (-map (lambda (token)
+                                       (car (split-string (symbol-name token) "[=:]")))
+                                     args-filtered)))
+                  (setq result (append params result)))))
+          (wrong-type-argument nil))))
+    ;; Entities that python-mode highlighted as variables
+    (save-excursion
+      (goto-char (point-min))
+      (let ((next-change (next-property-change (point))))
+        (while next-change
+          (goto-char next-change)
+          (let ((face-at-point (get-text-property (point) 'face)))
+            (when (or (and face-at-point (memq face-at-point identifier-faces))
+                      ;; If we fontified it in the past, assume it should
+                      ;; continue to be fontified. This avoids alternating
+                      ;; between fontified and unfontified.
+                      (get-text-property (point) 'color-identifiers:fontified))
+              (push (substring-no-properties (symbol-name (symbol-at-point))) result)))
+          (setq next-change (next-property-change (point))))))
+    (delete-dups result)
+    result))
+(color-identifiers:set-declaration-scan-fn
+ 'python-mode 'color-identifiers:python-get-declarations)
 
 (add-to-list
  'color-identifiers:modes-alist
