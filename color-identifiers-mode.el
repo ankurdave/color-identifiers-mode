@@ -48,7 +48,7 @@
 (defvar color-identifiers:timer nil
   "Timer for running `color-identifiers:refresh'.")
 
-(defvar color-identifiers:recoloring-delay 5
+(defvar color-identifiers:recoloring-delay 2
   "The delay before running `color-identifiers:refresh'.")
 
 (defun color-identifiers:enable-timer ()

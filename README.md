@@ -39,7 +39,7 @@ If you like it, enable it for all supported files by adding the following to you
 
 ## Configuration
 
-* Recoloring delay: the time before recoloring newly appeared identifiers is `5` seconds by default. To change it e.g. to `2` seconds add to your config `(setq color-identifiers:recoloring-delay 2 )`
+* Recoloring delay: the time before recoloring newly appeared identifiers is `2` seconds by default. To change it e.g. to `1` second add to your config `(setq color-identifiers:recoloring-delay 1)`
 * To make the variables stand out, you can turn off highlighting for all other keywords in supported modes using a code like:
     ```lisp
     (defun myfunc-color-identifiers-mode-hook ()
