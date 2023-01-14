@@ -202,7 +202,7 @@ SCAN-FN."
 (defun color-identifiers:cc-mode-get-declarations ()
   "Extract a list of identifiers declared in the current buffer.
 For cc-mode support within color-identifiers-mode."
-  (let ((result nil)
+  (let ((result (make-hash-table :test 'equal))
         (identifier-faces (color-identifiers:curr-identifier-faces)))
     ;; Entities that cc-mode highlighted as variables
     (save-excursion
@@ -216,10 +216,9 @@ For cc-mode support within color-identifiers-mode."
                       ;; continue to be fontified. This avoids alternating
                       ;; between fontified and unfontified.
                       (get-text-property (point) 'color-identifiers:fontified))
-              (push (substring-no-properties (symbol-name (symbol-at-point))) result)))
+              (puthash (substring-no-properties (symbol-name (symbol-at-point))) t result)))
           (setq next-change (next-property-change (point))))))
-    (delete-dups result)
-    result))
+    (hash-table-keys result)))
 
 (dolist (maj-mode '(c-mode c++-mode java-mode rust-mode rustic-mode meson-mode typescript-mode cuda-mode tsx-ts-mode typescript-ts-mode))
   (color-identifiers:set-declaration-scan-fn
@@ -733,14 +732,13 @@ major mode, identifiers are saved to
     (save-excursion
       (goto-char (point-min))
       (catch 'input-pending
-        (let ((result nil))
+        (let ((result (make-hash-table :test 'equal)))
           (color-identifiers:scan-identifiers
            (lambda (start end)
-             (push (buffer-substring-no-properties start end) result))
+             (puthash (buffer-substring-no-properties start end) t result))
            (point-max)
            (lambda () (if (input-pending-p) (throw 'input-pending nil) t)))
-          (delete-dups result)
-          result)))))
+          (hash-table-keys result))))))
 
 (defun color-identifiers:refontify ()
   "Refontify the buffer using font-lock."
