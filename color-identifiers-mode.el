@@ -777,10 +777,7 @@ not applied. If supplied, iteration only continues if CONTINUE-P
 evaluates to true."
   (let ((identifier-context-re (nth 1 color-identifiers:colorize-behavior))
         (identifier-re (nth 2 color-identifiers:colorize-behavior))
-        (identifier-faces
-         (if (functionp (nth 3 color-identifiers:colorize-behavior))
-             (funcall (nth 3 color-identifiers:colorize-behavior))
-           (nth 3 color-identifiers:colorize-behavior)))
+        (identifier-faces (color-identifiers:curr-identifier-faces))
         (identifier-exclusion-re (nth 4 color-identifiers:colorize-behavior)))
     ;; Skip forward to the next identifier that matches all four conditions
     (condition-case nil
