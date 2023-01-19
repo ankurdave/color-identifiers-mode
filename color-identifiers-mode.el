@@ -783,21 +783,21 @@ evaluates to true."
     (condition-case nil
         (while (and (< (point) limit)
                     (if continue-p (funcall continue-p) t))
-          (if (not (or (memq (get-text-property (point) 'face) identifier-faces)
-                       (let ((flface-prop (get-text-property (point) 'font-lock-face)))
-                         (and flface-prop (memq flface-prop identifier-faces)))
-                       (get-text-property (point) 'color-identifiers:fontified)))
-              (goto-char (next-property-change (point) nil limit))
-            (if (and (looking-back identifier-context-re (line-beginning-position))
-                     (or (not identifier-exclusion-re) (not (looking-at identifier-exclusion-re)))
-                     (looking-at identifier-re))
-                (progn
-                  ;; Found an identifier. Run `fn' on it
-                  (funcall fn (match-beginning 1) (match-end 1))
-                  (goto-char (match-end 1)))
-              (forward-char)
-              (re-search-forward identifier-re limit)
-              (goto-char (match-beginning 0)))))
+          (if (or (memq (get-text-property (point) 'face) identifier-faces)
+                  (let ((flface-prop (get-text-property (point) 'font-lock-face)))
+                    (and flface-prop (memq flface-prop identifier-faces)))
+                  (get-text-property (point) 'color-identifiers:fontified))
+              (if (and (looking-back identifier-context-re (line-beginning-position))
+                       (or (not identifier-exclusion-re) (not (looking-at identifier-exclusion-re)))
+                       (looking-at identifier-re))
+                  (progn
+                    ;; Found an identifier. Run `fn' on it
+                    (funcall fn (match-beginning 1) (match-end 1))
+                    (goto-char (match-end 1)))
+                (forward-char)
+                (re-search-forward identifier-re limit)
+                (goto-char (match-beginning 0)))
+            (goto-char (next-property-change (point) nil limit))))
       (search-failed nil))))
 
 (defun color-identifiers:colorize (limit)
