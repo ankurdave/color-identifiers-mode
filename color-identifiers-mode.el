@@ -256,6 +256,8 @@ For cc-mode support within color-identifiers-mode."
                   "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
                   (nil font-lock-variable-name-face js2-function-param))))
 
+(color-identifiers:set-declaration-scan-fn
+ 'js2-jsx-mode 'color-identifiers:cc-mode-get-declarations)
 (add-to-list
  'color-identifiers:modes-alist
  `(js2-jsx-mode . (,color-identifiers:re-not-inside-class-access
