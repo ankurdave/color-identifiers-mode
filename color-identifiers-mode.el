@@ -206,8 +206,7 @@ For cc-mode support within color-identifiers-mode."
         (identifier-faces (color-identifiers:curr-identifier-faces)))
     ;; Entities that cc-mode highlighted as variables
     (save-excursion
-      (goto-char (point-min))
-      (let ((next-change (next-property-change (point))))
+      (let ((next-change (next-property-change (point-min))))
         (while next-change
           (goto-char next-change)
           (let ((face-at-point (get-text-property (point) 'face)))
@@ -347,8 +346,7 @@ arguments, loops (for .. in), or for comprehensions."
           (wrong-type-argument nil))))
     ;; Entities that python-mode highlighted as variables
     (save-excursion
-      (goto-char (point-min))
-      (let ((next-change (next-property-change (point))))
+      (let ((next-change (next-property-change (point-min))))
         (while next-change
           (goto-char next-change)
           (let ((face-at-point (get-text-property (point) 'face)))
