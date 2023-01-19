@@ -792,16 +792,16 @@ evaluates to true."
                          (and flface-prop (memq flface-prop identifier-faces)))
                        (get-text-property (point) 'color-identifiers:fontified)))
               (goto-char (next-property-change (point) nil limit))
-            (if (not (and (looking-back identifier-context-re (line-beginning-position))
-                          (or (not identifier-exclusion-re) (not (looking-at identifier-exclusion-re)))
-                          (looking-at identifier-re)))
+            (if (and (looking-back identifier-context-re (line-beginning-position))
+                     (or (not identifier-exclusion-re) (not (looking-at identifier-exclusion-re)))
+                     (looking-at identifier-re))
                 (progn
-                  (forward-char)
-                  (re-search-forward identifier-re limit)
-                  (goto-char (match-beginning 0)))
-              ;; Found an identifier. Run `fn' on it
-              (funcall fn (match-beginning 1) (match-end 1))
-              (goto-char (match-end 1)))))
+                  ;; Found an identifier. Run `fn' on it
+                  (funcall fn (match-beginning 1) (match-end 1))
+                  (goto-char (match-end 1)))
+              (forward-char)
+              (re-search-forward identifier-re limit)
+              (goto-char (match-beginning 0)))))
       (search-failed nil))))
 
 (defun color-identifiers:colorize (limit)
