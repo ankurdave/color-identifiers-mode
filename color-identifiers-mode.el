@@ -324,7 +324,7 @@ For cc-mode support within color-identifiers-mode."
 For Python support within color-identifiers-mode.  Supports
 function arguments and variable assignment, but not yet lambda
 arguments, loops (for .. in), or for comprehensions."
-  (let ((result nil)
+  (let ((result (make-hash-table :test 'equal))
         (identifier-faces (color-identifiers:curr-identifier-faces)))
     ;; Function arguments
     (save-excursion
@@ -342,7 +342,7 @@ arguments, loops (for .. in), or for comprehensions."
                        (params (-map (lambda (token)
                                        (car (split-string (symbol-name token) "[=:]")))
                                      args-filtered)))
-                  (setq result (append params result)))))
+                  (dolist (param params) (puthash param t result)))))
           (wrong-type-argument nil))))
     ;; Entities that python-mode highlighted as variables
     (save-excursion
@@ -355,10 +355,9 @@ arguments, loops (for .. in), or for comprehensions."
                       ;; continue to be fontified. This avoids alternating
                       ;; between fontified and unfontified.
                       (get-text-property (point) 'color-identifiers:fontified))
-              (push (substring-no-properties (symbol-name (symbol-at-point))) result)))
+              (puthash (substring-no-properties (symbol-name (symbol-at-point))) t result)))
           (setq next-change (next-property-change (point))))))
-    (delete-dups result)
-    result))
+    (hash-table-keys result)))
 (color-identifiers:set-declaration-scan-fn
  'python-mode 'color-identifiers:python-get-declarations)
 
