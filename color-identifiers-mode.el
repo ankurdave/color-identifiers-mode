@@ -191,13 +191,6 @@ SCAN-FN."
 
 ;;; MAJOR MODE SUPPORT =========================================================
 
-;; Scala
-(add-to-list
- 'color-identifiers:modes-alist
- `(scala-mode . (,color-identifiers:re-not-inside-class-access
-                 "\\_<\\([[:lower:]]\\([_]??[[:lower:][:upper:]\\$0-9]+\\)*\\(_+[#:<=>@!%&*+/?\\\\^|~-]+\\|_\\)?\\)"
-                 (nil scala-font-lock:var-face font-lock-variable-name-face tree-sitter-hl-face:variable))))
-
 ;; C/C++
 (defun color-identifiers:cc-mode-get-declarations ()
   "Extract a list of identifiers declared in the current buffer.
@@ -227,6 +220,13 @@ For cc-mode support within color-identifiers-mode."
    `(,maj-mode . (""
                   "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
                   (nil font-lock-variable-name-face tree-sitter-hl-face:variable)))))
+
+;; Scala
+(add-to-list
+ 'color-identifiers:modes-alist
+ `(scala-mode . (,color-identifiers:re-not-inside-class-access
+                 "\\_<\\([[:lower:]]\\([_]??[[:lower:][:upper:]\\$0-9]+\\)*\\(_+[#:<=>@!%&*+/?\\\\^|~-]+\\|_\\)?\\)"
+                 (nil scala-font-lock:var-face font-lock-variable-name-face tree-sitter-hl-face:variable))))
 
 ;;; JavaScript
 (add-to-list
