@@ -191,13 +191,11 @@ SCAN-FN."
 
 ;;; MAJOR MODE SUPPORT =========================================================
 
-;; C/C++
-(defun color-identifiers:cc-mode-get-declarations ()
-  "Extract a list of identifiers declared in the current buffer.
-For cc-mode support within color-identifiers-mode."
+(defun color-identifiers:get-declarations ()
+  "Extract a list of identifiers declared in the current buffer."
   (let ((result (make-hash-table :test 'equal))
         (identifier-faces (color-identifiers:curr-identifier-faces)))
-    ;; Entities that cc-mode highlighted as variables
+    ;; Entities that major mode highlighted as variables
     (save-excursion
       (let ((next-change (next-property-change (point-min))))
         (while next-change
@@ -213,8 +211,6 @@ For cc-mode support within color-identifiers-mode."
     (hash-table-keys result)))
 
 (dolist (maj-mode '(c-mode c++-mode java-mode rust-mode rustic-mode meson-mode typescript-mode cuda-mode tsx-ts-mode typescript-ts-mode))
-  (color-identifiers:set-declaration-scan-fn
-   maj-mode 'color-identifiers:cc-mode-get-declarations)
   (add-to-list
    'color-identifiers:modes-alist
    `(,maj-mode . (""
@@ -235,8 +231,6 @@ For cc-mode support within color-identifiers-mode."
               "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
               (nil font-lock-variable-name-face))))
 
-(color-identifiers:set-declaration-scan-fn
- 'js2-mode 'color-identifiers:cc-mode-get-declarations)
 (add-to-list
  'color-identifiers:modes-alist
  `(js2-mode . (,color-identifiers:re-not-inside-class-access
@@ -255,8 +249,6 @@ For cc-mode support within color-identifiers-mode."
                   "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
                   (nil font-lock-variable-name-face js2-function-param))))
 
-(color-identifiers:set-declaration-scan-fn
- 'js2-jsx-mode 'color-identifiers:cc-mode-get-declarations)
 (add-to-list
  'color-identifiers:modes-alist
  `(js2-jsx-mode . (,color-identifiers:re-not-inside-class-access
@@ -538,8 +530,6 @@ incompatible with Emacs Lisp syntax, such as reader macros (#)."
                    (nil))))
 
 (dolist (maj-mode '(tuareg-mode sml-mode))
-  (color-identifiers:set-declaration-scan-fn
-   maj-mode 'color-identifiers:cc-mode-get-declarations)
   (add-to-list
    'color-identifiers:modes-alist
    `(,maj-mode . (""
@@ -730,17 +720,8 @@ major mode, identifiers are saved to
   (if (color-identifiers:get-declaration-scan-fn major-mode)
       (funcall (color-identifiers:get-declaration-scan-fn major-mode))
     ;; When no scan function is registered, fall back to
-    ;; `color-identifiers:scan-identifiers', which returns all identifiers
-    (save-excursion
-      (goto-char (point-min))
-      (catch 'input-pending
-        (let ((result (make-hash-table :test 'equal)))
-          (color-identifiers:scan-identifiers
-           (lambda (start end)
-             (puthash (buffer-substring-no-properties start end) t result))
-           (point-max)
-           (lambda () (if (input-pending-p) (throw 'input-pending nil) t)))
-          (hash-table-keys result))))))
+    ;; `color-identifiers:get-declarations', which returns all identifiers
+    (color-identifiers:get-declarations)))
 
 (defun color-identifiers:refontify ()
   "Refontify the buffer using font-lock."
