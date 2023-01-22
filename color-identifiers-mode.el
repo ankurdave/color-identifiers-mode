@@ -202,9 +202,9 @@ SCAN-FN."
           (goto-char next-change)
           (let ((face-at-point (get-text-property (point) 'face)))
             (when (or (and face-at-point (memq face-at-point identifier-faces))
-                      ;; If we fontified it in the past, assume it should
-                      ;; continue to be fontified. This avoids alternating
-                      ;; between fontified and unfontified.
+                      ;; If we fontified X in the past, keep X in the list for
+                      ;; consistency. Otherwise `scan-identifiers' will stop
+                      ;; colorizing new Xes while older ones remain colorized.
                       (get-text-property (point) 'color-identifiers:fontified))
               (puthash (substring-no-properties (symbol-name (symbol-at-point))) t result)))
           (setq next-change (next-property-change (point))))))
