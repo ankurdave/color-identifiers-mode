@@ -537,6 +537,12 @@ incompatible with Emacs Lisp syntax, such as reader macros (#)."
                    "\\_<\\(\\(?:\\s_\\|\\sw\\)+\\)"
                    (nil))))
 
+(add-to-list
+ 'color-identifiers:modes-alist
+ `(clojurescript-mode . (""
+                         "\\_<\\(\\(?:\\s_\\|\\sw\\)+\\)"
+                         (nil))))
+
 (dolist (maj-mode '(tuareg-mode sml-mode))
   (color-identifiers:set-declaration-scan-fn
    maj-mode 'color-identifiers:cc-mode-get-declarations)
