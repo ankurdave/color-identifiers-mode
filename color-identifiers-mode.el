@@ -657,8 +657,8 @@ Colors are output to `color-identifiers:colors'."
                       (apply 'color-rgb-to-hex rgb)))
                   chosens)))))
 
-(defvar-local color-identifiers:color-index-for-identifier nil
-  "Alist of identifier-index pairs for internal use.
+(defvar-local color-identifiers:color-index-for-identifier (make-hash-table :test 'equal)
+  "Hashtable of identifier-index pairs for internal use.
 The index refers to `color-identifiers:colors'. Only used when
 `color-identifiers-coloring-method' is `sequential'.")
 
@@ -704,16 +704,14 @@ major mode, identifiers are saved to
   (when color-identifiers-mode
     (cond
      ((eq color-identifiers-coloring-method 'sequential)
-      (setq color-identifiers:color-index-for-identifier
-            (append (-map-indexed
-                     (lambda (i identifier)
-                       ;; to make sure subsequently added vars aren't colorized the same add a (point)
-                       (cons identifier (% (+ (point) i) color-identifiers:num-colors)))
-                     (-filter (lambda (e)
-                                (cl-notany (lambda (d) (equal e (car d)))
-                                           color-identifiers:color-index-for-identifier))
-                              (color-identifiers:list-identifiers)))
-                    color-identifiers:color-index-for-identifier)))
+      (let ((i 0))
+        (dolist (identifier (color-identifiers:list-identifiers))
+          (unless (gethash identifier color-identifiers:color-index-for-identifier)
+            (puthash identifier
+                     ;; to make sure subsequently added vars aren't colorized the same add a (point)
+                     (% (+ (point) i) color-identifiers:num-colors)
+                     color-identifiers:color-index-for-identifier)
+            (setq i (1+ i))))))
      ((and (eq color-identifiers-coloring-method 'hash)
            (color-identifiers:get-declaration-scan-fn major-mode))
       (setq color-identifiers:identifiers
@@ -741,9 +739,9 @@ major mode, identifiers are saved to
 be colored."
   (cond
    ((eq color-identifiers-coloring-method 'sequential)
-    (let ((entry (assoc-string identifier color-identifiers:color-index-for-identifier)))
-      (when entry
-        (nth (cdr entry) color-identifiers:colors))))
+    (let ((index (gethash identifier color-identifiers:color-index-for-identifier)))
+      (when index
+        (nth index color-identifiers:colors))))
    ((eq color-identifiers-coloring-method 'hash)
     ;; If there is a declaration scan function for this major mode, the
     ;; candidate identifier should only be colored if it is in the memoized list
