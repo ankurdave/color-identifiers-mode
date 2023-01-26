@@ -704,12 +704,13 @@ major mode, identifiers are saved to
   (when color-identifiers-mode
     (cond
      ((eq color-identifiers-coloring-method 'sequential)
-      (let ((i 0))
+      (let ((i 0)
+            ;; to make sure subsequently added vars aren't colorized the same add a (point)
+            (randomize-subseq-calls (point)))
         (dolist (identifier (color-identifiers:list-identifiers))
           (unless (gethash identifier color-identifiers:color-index-for-identifier)
             (puthash identifier
-                     ;; to make sure subsequently added vars aren't colorized the same add a (point)
-                     (% (+ (point) i) color-identifiers:num-colors)
+                     (% (+ randomize-subseq-calls i) color-identifiers:num-colors)
                      color-identifiers:color-index-for-identifier)
             (setq i (1+ i))))))
      ((and (eq color-identifiers-coloring-method 'hash)
