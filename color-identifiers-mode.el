@@ -383,7 +383,6 @@ For Emacs Lisp support within color-identifiers-mode."
                  (puthash (symbol-name arg)
                           t result))))
            (push rest stack))
-          (`nil nil)
           ((pred consp)
            (let ((cons current))
              ;; Note: a cons is not necessarily a list, so can't rewrite this with a
