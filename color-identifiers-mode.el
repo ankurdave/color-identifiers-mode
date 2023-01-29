@@ -364,7 +364,7 @@ arguments, loops (for .. in), or for comprehensions."
   "Extract a list of identifiers declared in SEXP. Mutates SEXP.
 For Emacs Lisp support within color-identifiers-mode."
   (let ((stack `(,sexp)))
-    (while stack
+    (while (and stack (not (input-pending-p)))
       (let ((current (pop stack)))
         (pcase current
           ((or `(let . ,rest) `(let* . ,rest))
