@@ -372,12 +372,15 @@ For Emacs Lisp support within color-identifiers-mode."
            ;; VARLIST of let/let* could be like ((a 1) b c (d "foo")).
            (when (listp (car rest))
              (dolist (var (car rest))
-               (push (if (symbolp var) var (car var))
-                     result)))
+               (let ((arg (if (consp var) (car var) var)))
+                 (when (symbolp arg)
+                   (push (symbol-name arg) result)))))
            (push rest stack))
           ((or `(defun ,_ ,args . ,rest) `(lambda ,args . ,rest))
            (when (listp args)
-             (setq result (append args result)))
+             (dolist (arg args)
+               (when (symbolp arg)
+                 (push (symbol-name arg) result))))
            (push rest stack))
           (`nil nil)
           ((pred consp)
@@ -403,12 +406,8 @@ For Emacs Lisp support within color-identifiers-mode."
           (while t
             (condition-case nil
                 (let* ((sexp (read (current-buffer)))
-                       (ids (color-identifiers:elisp-declarations-in-sexp sexp))
-                       (strs (-filter 'identity
-                                      (mapcar (lambda (id)
-                                                (when (symbolp id) (symbol-name id)))
-                                              ids))))
-                  (setq result (append strs result)))
+                       (ids (color-identifiers:elisp-declarations-in-sexp sexp)))
+                  (setq result (append ids result)))
               (invalid-read-syntax nil)))
         (end-of-file nil)))
     (delete-dups result)
