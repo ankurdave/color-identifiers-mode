@@ -376,6 +376,10 @@ For Emacs Lisp support within color-identifiers-mode."
     ((pred consp)
      (let ((cons sexp)
            (result nil))
+       ;; Note: a cons is not necessarily a list, so can't rewrite this with a
+       ;; `dolist'. The difference is, a `(cdr cons)' of a list is required to either
+       ;; be another cons or `nil'. An example of the opposite is `(1 . 2)', the
+       ;; `dolist' will fail on that.
        (while (consp cons)
          (let ((ids (color-identifiers:elisp-declarations-in-sexp (car cons))))
            (when ids
