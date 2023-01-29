@@ -360,11 +360,10 @@ arguments, loops (for .. in), or for comprehensions."
                   (nil font-lock-variable-name-face tree-sitter-hl-face:variable))))
 
 ;; Emacs Lisp
-(defun color-identifiers:elisp-declarations-in-sexp (sexp)
+(defun color-identifiers:elisp-declarations-in-sexp (sexp result)
   "Extract a list of identifiers declared in SEXP. Mutates SEXP.
 For Emacs Lisp support within color-identifiers-mode."
-  (let ((result nil)
-        (stack `(,sexp)))
+  (let ((stack `(,sexp)))
     (while stack
       (let ((current (pop stack)))
         (pcase current
@@ -374,13 +373,15 @@ For Emacs Lisp support within color-identifiers-mode."
              (dolist (var (car rest))
                (let ((arg (if (consp var) (car var) var)))
                  (when (symbolp arg)
-                   (push (symbol-name arg) result)))))
+                   (puthash (symbol-name arg)
+                            t result)))))
            (push rest stack))
           ((or `(defun ,_ ,args . ,rest) `(lambda ,args . ,rest))
            (when (listp args)
              (dolist (arg args)
                (when (symbolp arg)
-                 (push (symbol-name arg) result))))
+                 (puthash (symbol-name arg)
+                          t result))))
            (push rest stack))
           (`nil nil)
           ((pred consp)
@@ -399,19 +400,17 @@ For Emacs Lisp support within color-identifiers-mode."
 (defun color-identifiers:elisp-get-declarations ()
   "Extract a list of identifiers declared in the current buffer.
 For Emacs Lisp support within color-identifiers-mode."
-  (let ((result nil))
+  (let ((result (make-hash-table :test 'equal)))
     (save-excursion
       (goto-char (point-min))
       (condition-case nil
           (while t
             (condition-case nil
-                (let* ((sexp (read (current-buffer)))
-                       (ids (color-identifiers:elisp-declarations-in-sexp sexp)))
-                  (setq result (append ids result)))
+                (let ((sexp (read (current-buffer))))
+                  (color-identifiers:elisp-declarations-in-sexp sexp result))
               (invalid-read-syntax nil)))
         (end-of-file nil)))
-    (delete-dups result)
-    result))
+    (hash-table-keys result)))
 
 (color-identifiers:set-declaration-scan-fn
  'emacs-lisp-mode 'color-identifiers:elisp-get-declarations)
