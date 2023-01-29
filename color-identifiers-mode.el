@@ -361,10 +361,10 @@ arguments, loops (for .. in), or for comprehensions."
 
 ;; Emacs Lisp
 (defun color-identifiers:elisp-declarations-in-sexp (sexp)
-  "Extract a list of identifiers declared in SEXP.
+  "Extract a list of identifiers declared in SEXP. Mutates SEXP.
 For Emacs Lisp support within color-identifiers-mode."
   (let ((result nil)
-        (stack (list sexp)))
+        (stack `(,sexp)))
     (while stack
       (let ((current (pop stack)))
         (pcase current
