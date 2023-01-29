@@ -363,34 +363,35 @@ arguments, loops (for .. in), or for comprehensions."
 (defun color-identifiers:elisp-declarations-in-sexp (sexp)
   "Extract a list of identifiers declared in SEXP.
 For Emacs Lisp support within color-identifiers-mode."
-  (pcase sexp
-    ((or `(let . ,rest) `(let* . ,rest))
-     ;; VARLIST of let/let* could be like ((a 1) b c (d "foo")).
-     (append (when (listp (car rest))
-               (mapcar (lambda (var) (if (symbolp var) var (car var))) (car rest)))
-             (color-identifiers:elisp-declarations-in-sexp rest)))
-    ((or `(defun ,_ ,args . ,rest) `(lambda ,args . ,rest))
-     (append (when (listp args) args)
-             (color-identifiers:elisp-declarations-in-sexp rest)))
-    (`nil nil)
-    ((pred consp)
-     (let ((cons sexp)
-           (result nil))
-       ;; Note: a cons is not necessarily a list, so can't rewrite this with a
-       ;; `dolist'. The difference is, a `(cdr cons)' of a list is required to either
-       ;; be another cons or `nil'. An example of the opposite is `(1 . 2)', the
-       ;; `dolist' will fail on that.
-       (while (consp cons)
-         (let ((ids (color-identifiers:elisp-declarations-in-sexp (car cons))))
-           (when ids
-             (setq result (append ids result))))
-         (setq cons (cdr cons)))
-       (when cons
-         ;; `cons' is non-nil but also non-cons
-         (let ((ids (color-identifiers:elisp-declarations-in-sexp cons)))
-           (when ids
-             (setq result (append ids result)))))
-       result))))
+  (let ((result nil)
+        (stack (list sexp)))
+    (while stack
+      (let ((current (pop stack)))
+        (pcase current
+          ((or `(let . ,rest) `(let* . ,rest))
+           ;; VARLIST of let/let* could be like ((a 1) b c (d "foo")).
+           (when (listp (car rest))
+             (dolist (var (car rest))
+               (push (if (symbolp var) var (car var))
+                     result)))
+           (push rest stack))
+          ((or `(defun ,_ ,args . ,rest) `(lambda ,args . ,rest))
+           (when (listp args)
+             (setq result (append args result)))
+           (push rest stack))
+          (`nil nil)
+          ((pred consp)
+           (let ((cons current))
+             ;; Note: a cons is not necessarily a list, so can't rewrite this with a
+             ;; `dolist'. The difference is, a `(cdr cons)' of a list is required to either
+             ;; be another cons or `nil'. An example of the opposite is `(1 . 2)', the
+             ;; `dolist' will fail on that.
+             (while (consp cons)
+               (push (car cons) stack)
+               (setq cons (cdr cons)))
+             (when cons ;; `cons' is non-nil but also non-cons
+               (push cons stack)))))))
+    result))
 
 (defun color-identifiers:elisp-get-declarations ()
   "Extract a list of identifiers declared in the current buffer.
