@@ -384,7 +384,7 @@ For Emacs Lisp support within color-identifiers-mode."
                    (puthash (symbol-name arg)
                             t result))))
              (push rest stack))
-            (t
+            (_
              (let ((cons current))
                ;; Note: a cons is not necessarily a list, so can't rewrite this with a
                ;; `dolist'. The difference is, a `(cdr cons)' of a list is required to either
