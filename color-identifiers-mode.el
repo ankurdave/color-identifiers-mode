@@ -758,7 +758,7 @@ be colored."
   (nth (% (abs (sxhash identifier)) color-identifiers:num-colors)
        color-identifiers:colors))
 
-(defun color-identifiers:scan-identifiers (fn limit &optional continue-p)
+(defun color-identifiers:scan-identifiers (fn limit)
   "Run FN on all candidate identifiers from point up to LIMIT.
 Candidate identifiers are defined by
 `color-identifiers:modes-alist'. Declaration scan functions are
@@ -770,8 +770,7 @@ evaluates to true."
         (identifier-exclusion-re (nth 4 color-identifiers:colorize-behavior)))
     ;; Skip forward to the next identifier that matches all four conditions
     (condition-case nil
-        (while (and (< (point) limit)
-                    (if continue-p (funcall continue-p) t))
+        (while (< (point) limit)
           (if (or (memq (get-text-property (point) 'face) identifier-faces)
                   (let ((flface-prop (get-text-property (point) 'font-lock-face)))
                     (and flface-prop (memq flface-prop identifier-faces))))
