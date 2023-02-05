@@ -335,9 +335,8 @@ arguments, loops (for .. in), or for comprehensions."
                                        (car (split-string (symbol-name token) "[=:]")))
                                      args-filtered)))
                   (dolist (param params) (puthash param t result)))))
-          (wrong-type-argument nil))))
-    ;; Entities that python-mode highlighted as variables
-    (save-excursion
+          (wrong-type-argument nil)))
+      ;; Entities that python-mode highlighted as variables
       (let ((next-change (next-property-change (point-min))))
         (while next-change
           (goto-char next-change)
