@@ -1,4 +1,6 @@
 # Color Identifiers Mode
+[![MELPA](http://melpa.org/packages/color-identifiers-mode-badge.svg)](http://melpa.org/#/color-identifiers-mode)
+
 Color Identifiers is a minor mode for Emacs that highlights each source code identifier uniquely based on its name. It is inspired by a [post by Evan Brooks](https://medium.com/p/3a6db2743a1e/).
 
 Currently it supports Scala (scala-mode2), JavaScript (js-mode and js2-mode), Ruby, Python, Emacs Lisp, Clojure, C, C++, Rust, Java, and Go. You can add support for your favorite mode by modifying `color-identifiers:modes-alist` and optionally calling `color-identifiers:set-declaration-scan-fn`.
