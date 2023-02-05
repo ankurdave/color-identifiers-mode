@@ -321,7 +321,7 @@ arguments, loops (for .. in), or for comprehensions."
     ;; Function arguments
     (save-excursion
       (goto-char (point-min))
-      (while (python-nav-forward-defun)
+      (while (and (python-nav-forward-defun) (not (input-pending-p)))
         (condition-case nil
             (let ((arglist (sexp-at-point)))
               (when (and arglist (listp arglist))
