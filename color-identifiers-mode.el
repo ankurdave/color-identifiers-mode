@@ -393,8 +393,7 @@ For Emacs Lisp support within color-identifiers-mode."
                (push (car cons) stack)
                (setq cons (cdr cons)))
              (when cons ;; `cons' is non-nil but also non-cons
-               (push cons stack)))))))
-    result))
+               (push cons stack)))))))))
 
 (defun color-identifiers:elisp-get-declarations ()
   "Extract a list of identifiers declared in the current buffer.
