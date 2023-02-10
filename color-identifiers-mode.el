@@ -210,7 +210,7 @@ SCAN-FN."
           (setq next-change (next-property-change (point))))))
     (hash-table-keys result)))
 
-(dolist (maj-mode '(c-mode c++-mode java-mode rust-mode rustic-mode meson-mode typescript-mode cuda-mode tsx-ts-mode typescript-ts-mode))
+(dolist (maj-mode '(c-mode c++-mode java-mode rust-mode rust-ts-mode rustic-mode meson-mode typescript-mode cuda-mode tsx-ts-mode typescript-ts-mode))
   (add-to-list
    'color-identifiers:modes-alist
    `(,maj-mode . (""
