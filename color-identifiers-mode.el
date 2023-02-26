@@ -730,9 +730,9 @@ major mode, identifiers are saved to
 
 (defun color-identifiers:refontify ()
   "Refontify the buffer using font-lock."
-  (if (fboundp 'font-lock-flush)
-      (font-lock-flush)
-    (when font-lock-mode
+  (when font-lock-mode
+    (if (fboundp 'font-lock-flush)
+        (font-lock-flush)
       (with-no-warnings
         (font-lock-fontify-buffer)))))
 
