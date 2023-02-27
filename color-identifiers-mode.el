@@ -78,6 +78,8 @@ major mode")
               (print "Major mode is not supported by color-identifiers, disabling")
               (color-identifiers-mode -1))
           (color-identifiers:regenerate-colors)
+          (when (null color-identifiers:color-index-for-identifier)
+            (setq color-identifiers:color-index-for-identifier (make-hash-table :test 'equal)))
           (color-identifiers:refresh)
           (add-to-list 'font-lock-extra-managed-props 'color-identifiers:fontified)
           (font-lock-add-keywords nil '((color-identifiers:colorize . default)) t)
@@ -658,7 +660,7 @@ Colors are output to `color-identifiers:colors'."
                       (apply 'color-rgb-to-hex rgb)))
                   chosens)))))
 
-(defvar-local color-identifiers:color-index-for-identifier (make-hash-table :test 'equal)
+(defvar-local color-identifiers:color-index-for-identifier nil
   "Hashtable of identifier-index pairs for internal use.
 The index refers to `color-identifiers:colors'. Only used when
 `color-identifiers-coloring-method' is `sequential'.")
