@@ -64,37 +64,6 @@
 `color-identifiers:modes-alist' that is relevant to the current
 major mode")
 
-;;;###autoload
-(define-minor-mode color-identifiers-mode
-  "Color the identifiers in the current buffer based on their names."
-  :init-value nil
-  :lighter " ColorIds"
-  (if color-identifiers-mode
-      (progn
-        (setq color-identifiers:colorize-behavior
-              (assoc major-mode color-identifiers:modes-alist))
-        (if (not color-identifiers:colorize-behavior)
-            (progn
-              (print "Major mode is not supported by color-identifiers, disabling")
-              (color-identifiers-mode -1))
-          (color-identifiers:regenerate-colors)
-          (when (null color-identifiers:color-index-for-identifier)
-            (setq color-identifiers:color-index-for-identifier (make-hash-table :test 'equal)))
-          (color-identifiers:refresh)
-          (add-to-list 'font-lock-extra-managed-props 'color-identifiers:fontified)
-          (font-lock-add-keywords nil '((color-identifiers:colorize . default)) t)
-          (color-identifiers:enable-timer)
-          (ad-activate 'enable-theme)))
-    (when color-identifiers:timer
-      (cancel-timer color-identifiers:timer))
-    (font-lock-remove-keywords nil '((color-identifiers:colorize . default)))
-    (ad-deactivate 'enable-theme))
-  (color-identifiers:refontify))
-
-;;;###autoload
-(define-global-minor-mode global-color-identifiers-mode
-  color-identifiers-mode color-identifiers-mode-maybe)
-
 (defadvice enable-theme (after color-identifiers:regen-on-theme-change)
   "Regenerate colors for color-identifiers-mode on theme change."
   (color-identifiers:regenerate-colors))
@@ -670,6 +639,37 @@ The index refers to `color-identifiers:colors'. Only used when
 Only used when `color-identifiers-coloring-method' is `hash' and
 a declaration scan function is registered for the current major
 mode. This variable memoizes the result of the declaration scan function.")
+
+;;;###autoload
+(define-minor-mode color-identifiers-mode
+  "Color the identifiers in the current buffer based on their names."
+  :init-value nil
+  :lighter " ColorIds"
+  (if color-identifiers-mode
+      (progn
+        (setq color-identifiers:colorize-behavior
+              (assoc major-mode color-identifiers:modes-alist))
+        (if (not color-identifiers:colorize-behavior)
+            (progn
+              (print "Major mode is not supported by color-identifiers, disabling")
+              (color-identifiers-mode -1))
+          (color-identifiers:regenerate-colors)
+          (when (null color-identifiers:color-index-for-identifier)
+            (setq color-identifiers:color-index-for-identifier (make-hash-table :test 'equal)))
+          (color-identifiers:refresh)
+          (add-to-list 'font-lock-extra-managed-props 'color-identifiers:fontified)
+          (font-lock-add-keywords nil '((color-identifiers:colorize . default)) t)
+          (color-identifiers:enable-timer)
+          (ad-activate 'enable-theme)))
+    (when color-identifiers:timer
+      (cancel-timer color-identifiers:timer))
+    (font-lock-remove-keywords nil '((color-identifiers:colorize . default)))
+    (ad-deactivate 'enable-theme))
+  (color-identifiers:refontify))
+
+;;;###autoload
+(define-global-minor-mode global-color-identifiers-mode
+  color-identifiers-mode color-identifiers-mode-maybe)
 
 (defun color-identifiers:attribute-luminance (attribute)
   "Find the HSL luminance of the specified ATTRIBUTE on the default face."
