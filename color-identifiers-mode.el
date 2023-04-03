@@ -40,6 +40,7 @@
 (require 'dash)
 (require 'cl-lib)
 (require 'rx)
+(require 'subr-x)
 
 (defgroup color-identifiers nil "Color identifiers based on their names."
   :group 'faces)
