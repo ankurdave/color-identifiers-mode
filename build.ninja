@@ -11,7 +11,7 @@ build dash.el: batch_emacs
 build color-identifiers-mode.elc: compile_file color-identifiers-mode.el | dash.el
   args = -l dash.el
 
-build tests.elc: compile_file tests.el | dash.el
+build tests.elc: compile_file tests.el | dash.el color-identifiers-mode.elc
   args = -l dash.el -l color-identifiers-mode.elc
 
 build tests: batch_emacs | dash.el color-identifiers-mode.elc tests.elc
