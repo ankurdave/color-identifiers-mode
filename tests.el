@@ -82,12 +82,12 @@ identifers are highlighted as expected"
       (insert buffer-content)
       (funcall mode-func)
       (goto-char 1)
-      ;; most modes require (font-lock-fontify-buffer) for highlight to appear
-      (font-lock-fontify-buffer)
+      ;; most modes require (font-lock-ensure) for highlight to appear
+      (font-lock-ensure)
       (color-identifiers-mode 1)
       ;; color-identifiers:scan-identifiers is called by font-lock when it considers
       ;; appropriate, so force it.
-      (font-lock-fontify-buffer)
+      (font-lock-ensure)
       (color-identifiers:all-identifiers-highlighted expected-ids-table))))
 
 (ert-deftest test-c-mode-sequential ()
