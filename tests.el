@@ -1,4 +1,27 @@
 (require 'ert)
+(require 'color-identifiers-mode)
+
+(defvar color-identifiers:c-mode-text
+      ["struct {
+    int struct_a;
+    char struct_b;
+} MyStruct;
+
+int main() {
+    int main_a = 1;
+    main_a = 7;
+    int *main_p = &main_a;
+}" (("struct_a" . 1) ("struct_b" . 1) ("MyStruct" . 1) ("main_a" . 3) ("main_p" . 1))])
+
+(defvar color-identifiers:elisp-mode-text
+      ["(defun f (var1 var2)
+  (+ var1 var2)
+  (let ((var3 1))
+   (1+ var3)))" (("var1" . 2) ("var2" . 2) ("var3" . 2))])
+
+(defvar color-identifiers:python-mode-text
+      ["def f(arg1, arg2: int):
+    arg3 = arg1 + arg2" (("arg1" . 2) ("arg2" . 2) ("arg3" . 1))])
 
 (defun color-identifiers:init-hash-table (list)
   "Initializes a hash-table with (key . val) pairs from list"
@@ -48,11 +71,13 @@
                  (should (= curr-highlight expected-value))))
              ids)))
 
-(defun color-identifiers:test-mode (mode-func buffer-content expected-ids)
-  "Creates a buffer with `buffer-content', enables a major mode with
+(defun color-identifiers:test-mode (mode-func text-to-test)
+  "Creates a buffer with the text, enables a major mode with
 `mode-func', enables `color-identifers-mode', then checks that
-ids are highlighted exactly as defined by `expected-ids'"
-  (let ((expected-ids-table (color-identifiers:init-hash-table expected-ids)))
+identifers are highlighted as expected"
+  (let* ((buffer-content (aref text-to-test 0))
+         (expected-ids (aref text-to-test 1))
+         (expected-ids-table (color-identifiers:init-hash-table expected-ids)))
     (with-temp-buffer
       (insert buffer-content)
       (funcall mode-func)
@@ -65,35 +90,28 @@ ids are highlighted exactly as defined by `expected-ids'"
       (font-lock-fontify-buffer)
       (color-identifiers:all-identifiers-highlighted expected-ids-table))))
 
-(ert-deftest test-c-mode ()
-  (color-identifiers:test-mode
-   #'c-mode
-   "struct {
-    int struct_a;
-    char struct_b;
-} MyStruct;
+(ert-deftest test-c-mode-sequential ()
+  (setq color-identifiers-coloring-method 'sequential)
+  (color-identifiers:test-mode #'c-mode color-identifiers:c-mode-text))
 
-int main() {
-    int main_a = 1;
-    main_a = 7;
-    int *main_p = &main_a;
-}
-"
-    '(("struct_a" . 1) ("struct_b" . 1) ("MyStruct" . 1) ("main_a" . 3)
-      ("main_p" . 1))))
-
-(ert-deftest test-emacs-lisp-mode ()
+(ert-deftest test-emacs-lisp-mode-sequential ()
+  (setq color-identifiers-coloring-method 'sequential)
   (color-identifiers:test-mode
-   #'emacs-lisp-mode
-   "(defun f (var1 var2)
-  (+ var1 var2)
-  (let ((var3 1))
-   (1+ var3)))"
-    '(("var1" . 2) ("var2" . 2) ("var3" . 2))))
+   #'emacs-lisp-mode color-identifiers:elisp-mode-text))
 
-(ert-deftest test-python-mode ()
+(ert-deftest test-python-mode-sequential ()
+  (setq color-identifiers-coloring-method 'sequential)
+  (color-identifiers:test-mode #'python-mode color-identifiers:python-mode-text))
+
+(ert-deftest test-c-mode-hash ()
+  (setq color-identifiers-coloring-method 'hash)
+  (color-identifiers:test-mode #'c-mode color-identifiers:c-mode-text))
+
+(ert-deftest test-emacs-lisp-mode-hash ()
+  (setq color-identifiers-coloring-method 'hash)
   (color-identifiers:test-mode
-   #'python-mode
-   "def f(arg1, arg2: int):
-    arg3 = arg1 + arg2"
-    '(("arg1" . 2) ("arg2" . 2) ("arg3" . 1))))
+   #'emacs-lisp-mode color-identifiers:elisp-mode-text))
+
+(ert-deftest test-python-mode-hash ()
+  (setq color-identifiers-coloring-method 'hash)
+  (color-identifiers:test-mode #'python-mode color-identifiers:python-mode-text))
