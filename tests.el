@@ -11,17 +11,29 @@ int main() {
     int main_a = 1;
     main_a = 7;
     int *main_p = &main_a;
-}" (("struct_a" . 1) ("struct_b" . 1) ("MyStruct" . 1) ("main_a" . 3) ("main_p" . 1))])
+}" (("struct_a" . 1) ("struct_b" . 1) ("MyStruct" . 1) ("main_a" . 3) ("main_p" . 1))
+
+;; test inserting/updating content
+"    int main_a;"
+(("struct_a" . 1) ("struct_b" . 1) ("MyStruct" . 1) ("main_a" . 4) ("main_p" . 1))])
 
 (defvar color-identifiers:elisp-mode-text
       ["(defun f (var1 var2)
   (+ var1 var2)
   (let ((var3 1))
-   (1+ var3)))" (("var1" . 2) ("var2" . 2) ("var3" . 2))])
+   (1+ var3)))" (("var1" . 2) ("var2" . 2) ("var3" . 2))
+
+   ;; test inserting/updating content
+   "
+(setq var1 var3)" (("var1" . 3) ("var2" . 2) ("var3" . 3))])
 
 (defvar color-identifiers:python-mode-text
       ["def f(arg1, arg2: int):
-    arg3 = arg1 + arg2" (("arg1" . 2) ("arg2" . 2) ("arg3" . 1))])
+    arg3 = arg1 + arg2" (("arg1" . 2) ("arg2" . 2) ("arg3" . 1))
+
+    ;; test inserting/updating content
+    "
+    return arg1 + arg2" (("arg1" . 3) ("arg2" . 3) ("arg3" . 1))])
 
 (defun color-identifiers:init-hash-table (list)
   "Initializes a hash-table with (key . val) pairs from list"
@@ -36,6 +48,7 @@ int main() {
 
 (defun color-identifiers:all-identifiers-highlighted (ids)
   "Test that all identifiers in `ids' are highlighted in the buffer"
+  (goto-char 1)
   (let ((highlights (make-hash-table :test 'equal))
         (next-change (next-property-change (point-min)))
         (identifier-context-re   (nth 1 color-identifiers:colorize-behavior))
@@ -75,20 +88,38 @@ int main() {
   "Creates a buffer with the text, enables a major mode with
 `mode-func', enables `color-identifers-mode', then checks that
 identifers are highlighted as expected"
-  (let* ((buffer-content (aref text-to-test 0))
-         (expected-ids (aref text-to-test 1))
-         (expected-ids-table (color-identifiers:init-hash-table expected-ids)))
+  (let* ((initial-content (aref text-to-test 0))
+         (expected-initial-ids (aref text-to-test 1))
+         (expected-initial-ids-table (color-identifiers:init-hash-table expected-initial-ids))
+         (updated-content (aref text-to-test 2))
+         (expected-updated-ids (aref text-to-test 3))
+         (expected-updated-ids-table (color-identifiers:init-hash-table expected-updated-ids))
+         initial-fontification)
     (with-temp-buffer
-      (insert buffer-content)
+      (insert initial-content)
       (funcall mode-func)
-      (goto-char 1)
       ;; most modes require (font-lock-ensure) for highlight to appear
       (font-lock-ensure)
       (color-identifiers-mode 1)
       ;; color-identifiers:scan-identifiers is called by font-lock when it considers
       ;; appropriate, so force it.
       (font-lock-ensure)
-      (color-identifiers:all-identifiers-highlighted expected-ids-table))))
+      (color-identifiers:all-identifiers-highlighted expected-initial-ids-table)
+
+      ;; now test adding new content
+      (setq initial-fontification `[,(buffer-substring (point-min) (point-max))
+                                    ,(point-min)
+                                    ,(point-max)])
+      (goto-char (point-max))
+      (insert updated-content)
+      (font-lock-ensure) ;; update highlight
+      (color-identifiers:all-identifiers-highlighted expected-updated-ids-table)
+
+      ;; check that we didn't change colors in the older part of the buffer
+      (should (equal-including-properties
+               (aref initial-fontification 0)
+               (buffer-substring (aref initial-fontification 1)
+                                 (aref initial-fontification 2)))))))
 
 (ert-deftest test-c-mode-sequential ()
   (setq color-identifiers-coloring-method 'sequential)
