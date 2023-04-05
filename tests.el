@@ -10,6 +10,7 @@
 int main() {
     int main_a = 1;
     main_a = 7;
+    // main_p main_a
     int *main_p = &main_a;
 }" (("struct_a" . 1) ("struct_b" . 1) ("MyStruct" . 1) ("main_a" . 3) ("main_p" . 1))
 
@@ -21,6 +22,7 @@ int main() {
       ["(defun f (var1 var2)
   (+ var1 var2)
   (let ((var3 1))
+   ;; var1 var2
    (1+ var3)))" (("var1" . 2) ("var2" . 2) ("var3" . 2))
 
    ;; test inserting/updating content
@@ -29,6 +31,7 @@ int main() {
 
 (defvar color-identifiers:python-mode-text
       ["def f(arg1, arg2: int):
+    # arg1 arg2
     arg3 = arg1 + arg2" (("arg1" . 2) ("arg2" . 2) ("arg3" . 1))
 
     ;; test inserting/updating content
@@ -45,6 +48,10 @@ int main() {
 
 (defun color-identifiers:we-fontified-point ()
   (get-text-property (point) 'color-identifiers:fontified))
+
+(defun is-in-comment ()
+  "tests if point is in comment"
+  (nth 4 (syntax-ppss)))
 
 (defun color-identifiers:all-identifiers-highlighted (ids)
   "Test that all identifiers in `ids' are highlighted in the buffer"
@@ -74,7 +81,7 @@ int main() {
                 (if maybe-id-count
                     (puthash maybe-id (1+ maybe-id-count) highlights)
                   (puthash maybe-id 1 highlights))))
-          (when (and context-matches maybe-id)
+          (when (and context-matches maybe-id (not (is-in-comment)))
             (should (null (gethash maybe-id ids))))))
       (setq next-change (next-property-change (point))))
     ;; Now test that the amount of identifiers highlighted is as expected
