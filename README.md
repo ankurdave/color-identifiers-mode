@@ -59,3 +59,9 @@ If you like it, enable it for all supported files by adding the following to you
     ```
 
     ![Other Keywords Dimmed](https://raw.github.com/ankurdave/color-identifiers-mode/gh-pages/dim-other-keywords.png)
+
+## Contributing
+
+After having made changes to `color-identifiers-mode.el` you can test for regressions by running `ninja tests`. It checks lack of byte-compilation warnings and color-highlighting in various modes.
+
+Improvements to the tests or the core mode are always welcome!
