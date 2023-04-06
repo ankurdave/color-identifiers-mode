@@ -123,10 +123,17 @@ identifers are highlighted as expected"
       (color-identifiers:all-identifiers-highlighted expected-updated-ids-table)
 
       ;; check that we didn't change colors in the older part of the buffer
-      (should (equal-including-properties
-               (aref initial-fontification 0)
-               (buffer-substring (aref initial-fontification 1)
-                                 (aref initial-fontification 2)))))))
+
+      ;; TODO: the emacs-version check works around a bug
+      ;; https://emacs.stackexchange.com/a/42317/2671 But we can change the code to
+      ;; iterate over the region and just create a list of our own properties, which
+      ;; would work on all Emacs versions. It might even be more robust as we only
+      ;; care of our changes and not the ones a mode may have made.
+      (when (> emacs-major-version 28)
+        (should (equal-including-properties
+                 (aref initial-fontification 0)
+                 (buffer-substring (aref initial-fontification 1)
+                                   (aref initial-fontification 2))))))))
 
 (ert-deftest test-c-mode-sequential ()
   (setq color-identifiers-coloring-method 'sequential)
