@@ -35,7 +35,7 @@
 
 ;;; Code:
 
-(require 'advice)
+(require 'nadvice)
 (require 'color)
 (require 'dash)
 (require 'cl-lib)
@@ -65,7 +65,7 @@
 `color-identifiers:modes-alist' that is relevant to the current
 major mode")
 
-(defadvice enable-theme (after color-identifiers:regen-on-theme-change)
+(defun color-identifiers:regen-on-theme-change(_)
   "Regenerate colors for color-identifiers-mode on theme change."
   (color-identifiers:regenerate-colors))
 
@@ -661,11 +661,11 @@ mode. This variable memoizes the result of the declaration scan function.")
           (add-to-list 'font-lock-extra-managed-props 'color-identifiers:fontified)
           (font-lock-add-keywords nil '((color-identifiers:colorize . default)) t)
           (color-identifiers:enable-timer)
-          (ad-activate 'enable-theme)))
+          (advice-add 'enable-theme :after #'color-identifiers:regen-on-theme-change)))
     (when color-identifiers:timer
       (cancel-timer color-identifiers:timer))
     (font-lock-remove-keywords nil '((color-identifiers:colorize . default)))
-    (ad-deactivate 'enable-theme))
+    (advice-remove 'enable-theme #'color-identifiers:regen-on-theme-change))
   (color-identifiers:refontify))
 
 ;;;###autoload
