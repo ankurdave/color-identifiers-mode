@@ -33,11 +33,12 @@ int main() {
 (defvar color-identifiers:python-mode-text
       ["def f(arg1, arg2: int):
     # arg1 arg2
-    arg3 = arg1 + arg2" (("arg1" . 2) ("arg2" . 2) ("arg3" . 1))
+    sum(foo.arg1) + sum(arg2) # in foo.bar the bar is excluded from highlight
+    arg3 = arg1 + arg2" (("arg1" . 2) ("arg2" . 3) ("arg3" . 1))
 
     ;; test inserting/updating content
     "
-    return arg1 + arg2" (("arg1" . 3) ("arg2" . 3) ("arg3" . 1))])
+    return arg1 + arg2" (("arg1" . 3) ("arg2" . 4) ("arg3" . 1))])
 
 (defun color-identifiers:init-hash-table (list)
   "Initializes a hash-table with (key . val) pairs from list"

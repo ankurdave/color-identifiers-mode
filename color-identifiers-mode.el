@@ -777,7 +777,7 @@ evaluates to true."
                   (let ((flface-prop (get-text-property (point) 'font-lock-face)))
                     (and flface-prop (memq flface-prop identifier-faces))))
               (if (and (looking-back identifier-context-re (line-beginning-position))
-                       (or (not identifier-exclusion-re) (not (looking-at identifier-exclusion-re)))
+                       (or (not identifier-exclusion-re) (not (looking-at-p identifier-exclusion-re)))
                        (looking-at identifier-re))
                   (progn
                     ;; Found an identifier. Run `fn' on it
