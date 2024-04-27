@@ -654,7 +654,15 @@ mode. This variable memoizes the result of the declaration scan function.")
             (progn
               (print "Major mode is not supported by color-identifiers, disabling")
               (color-identifiers-mode -1))
-          (color-identifiers:regenerate-colors)
+          (unless color-identifiers:colors
+            ;; When GUI emacs is used and additionally terminal-based `emacsclient'
+            ;; gets launched, that may cause colors for identifiers change globally.
+            ;; This is not a good user experience. Ideally we should keep two
+            ;; separate vectors, for graphics and terminal versions of colors. But
+            ;; it's unclear how that should communicate with theme changes, so unless
+            ;; there's demand, let's for now just make sure we don't toggle colors
+            ;; back and forth everywhere.
+            (color-identifiers:regenerate-colors))
           (when (null color-identifiers:color-index-for-identifier)
             (setq color-identifiers:color-index-for-identifier (make-hash-table :test 'equal)))
           (color-identifiers:refresh)
