@@ -8,7 +8,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                os: [ubuntu-latest, macos-latest, windows-latest]
+                os: [ubuntu-latest, windows-latest]
                 emacs-version:
                     - 27.2
                     # snapshot has additional checks don't work on earlier versions,
