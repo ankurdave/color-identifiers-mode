@@ -42,6 +42,7 @@ If you like it, enable it for all supported files by adding the following to you
 ## Configuration
 
 * Recoloring delay: the time before recoloring newly appeared identifiers is `2` seconds by default. To change it e.g. to `1` second add to your config `(setq color-identifiers:recoloring-delay 1)`
+* Additional face-properties *(such as italic or bold)* can be added to the identifiers by modifying `color-identifiers:extra-face-attributes`. E.g. to make identifiers look bold use `(setq color-identifiers:extra-face-attributes '(:weight bold))`. But make sure not to change `:foreground` because it is the color of identifiers.
 * To make the variables stand out, you can turn off highlighting for all other keywords in supported modes using a code like:
     ```lisp
     (defun myfunc-color-identifiers-mode-hook ()
