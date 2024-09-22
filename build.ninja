@@ -6,7 +6,12 @@ rule compile_file
   command = emacs -batch --eval "(setq byte-compile-error-on-warn t)" $args -f batch-byte-compile $in
 
 build dash.el: batch_emacs
-  args = --eval "(progn (require 'url) (url-copy-file \"https://raw.githubusercontent.com/magnars/dash.el/master/dash.el\" \"dash.el\"))"
+  # In the code below we remove dash.el manually, because when it's "dirty",
+  # url-copy-file won't overwrite it (it may ignore it but that's different).
+  args = --eval "(progn$
+                   (require 'url)$
+                   (delete-file \"dash.el\")$
+                   (url-copy-file \"https://raw.githubusercontent.com/magnars/dash.el/master/dash.el\" \"dash.el\"))"
 
 build color-identifiers-mode.elc: compile_file color-identifiers-mode.el | dash.el
   args = -l dash.el
