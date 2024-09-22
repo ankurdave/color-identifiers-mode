@@ -88,6 +88,13 @@ color should be avoided when generating colors, this can be warning colors,
 error colors etc."
   :type '(repeat face))
 
+(defcustom color-identifiers:extra-face-attributes nil
+  "Extra face attributes to apply to identifiers. Can be used to make
+identifiers bold or italic, but avoid changing `:foreground'
+because it is the color determined by the mode."
+  :type 'plist
+  :group 'color-identifiers)
+
 (defvar color-identifiers:modes-alist nil
   "Alist of major modes and the ways to distinguish identifiers in those modes.
 The value of each cons cell provides four constraints for finding
@@ -803,9 +810,10 @@ evaluates to true."
      (let* ((identifier (buffer-substring-no-properties start end))
             (hex (color-identifiers:color-identifier identifier)))
        (when hex
-         (put-text-property start end 'face `(:foreground ,hex))
-         (put-text-property start end 'color-identifiers:fontified t))))
-   limit))
+         (let ((face-spec (append `(:foreground ,hex) color-identifiers:extra-face-attributes)))
+           (put-text-property start end 'face face-spec)
+           (put-text-property start end 'color-identifiers:fontified t)))))
+     limit))
 
 (defun color-identifiers-mode-maybe ()
   "Enable `color-identifiers-mode' in the current buffer if desired.
