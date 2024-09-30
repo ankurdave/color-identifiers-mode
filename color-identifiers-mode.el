@@ -816,10 +816,17 @@ evaluates to true."
      limit))
 
 (defun color-identifiers-mode-maybe ()
-  "Enable `color-identifiers-mode' in the current buffer if desired.
-When `major-mode' is listed in `color-identifiers:modes-alist', then
-`color-identifiers-mode' will be enabled."
-  (when (assoc major-mode color-identifiers:modes-alist)
+  "Potentially enable `color-identifiers-mode' in the current buffer.
+
+Specifically, when `major-mode' is listed in
+`color-identifiers:modes-alist', and the buffer isn't temporary."
+  ;; Avoid running in temp buffers created by `with-temp-buffer'. Most notably,
+  ;; package installation process is known to create one and then enable
+  ;; `emacs-lisp-mode' for the purpose of parsing autoloads, which in turn triggers
+  ;; color-identifers-mode for no reason. During a huge upgrade this may add up,
+  ;; especially given our ad hoc ELisp parsing code isn't the fastest.
+  (when (and (not (string-prefix-p " *temp" (buffer-name)))
+             (assoc major-mode color-identifiers:modes-alist))
     (color-identifiers-mode 1)))
 
 (provide 'color-identifiers-mode)
