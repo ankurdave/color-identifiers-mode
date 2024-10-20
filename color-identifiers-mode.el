@@ -746,13 +746,13 @@ major mode, identifiers are saved to
     ;; `color-identifiers:get-declarations', which returns all identifiers
     (color-identifiers:get-declarations)))
 
-(defun color-identifiers:refontify ()
-  "Refontify the buffer using font-lock."
+(defalias 'color-identifiers:refontify
   (if (fboundp 'font-lock-flush)
-      (font-lock-flush)
-    ;; `font-lock-flush' didn't exist prior to Emacs 25.1
-    (with-no-warnings
-      (and font-lock-mode (font-lock-fontify-buffer)))))
+      'font-lock-flush
+    (lambda ()
+      "Refontify the buffer using font-lock."
+      (with-no-warnings
+        (and font-lock-mode (font-lock-fontify-buffer))))))
 
 (defun color-identifiers:color-identifier (identifier)
   "Return the hex color for IDENTIFIER, or nil if it should not
