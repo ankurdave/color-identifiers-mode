@@ -748,11 +748,11 @@ major mode, identifiers are saved to
 
 (defun color-identifiers:refontify ()
   "Refontify the buffer using font-lock."
-  (when font-lock-mode
-    (if (fboundp 'font-lock-flush)
-        (font-lock-flush)
-      (with-no-warnings
-        (font-lock-fontify-buffer)))))
+  (if (fboundp 'font-lock-flush)
+      (font-lock-flush)
+    ;; `font-lock-flush' didn't exist prior to Emacs 25.1
+    (with-no-warnings
+      (and font-lock-mode (font-lock-fontify-buffer)))))
 
 (defun color-identifiers:color-identifier (identifier)
   "Return the hex color for IDENTIFIER, or nil if it should not
