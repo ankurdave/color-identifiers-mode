@@ -7,7 +7,7 @@
 ;; Created: 24 Jan 2014
 ;; Version: 1.1
 ;; Keywords: faces, languages
-;; Package-Requires: ((dash "2.5.0") (emacs "24"))
+;; Package-Requires: ((dash "2.5.0") (emacs "24.4"))
 
 ;; This file is not a part of GNU Emacs.
 
