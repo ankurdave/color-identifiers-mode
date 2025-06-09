@@ -789,7 +789,16 @@ Candidate identifiers are defined by `color-identifiers:modes-alist'."
     ;; Skip forward to the next identifier that matches all four conditions
     (condition-case nil
         (while (< (point) limit)
-          (if (or (memq (get-text-property (point) 'face) identifier-faces)
+          (if (or (let ((curr-face (get-text-property (point) 'face)))
+                    (or
+                     ;; Note: if `curr-face' is nil, the memq will usually
+                     ;; succeed because nil is typically part of the list.
+                     (memq curr-face identifier-faces)
+                     ;; `font-lock-variable-use-face' isn't included in
+                     ;; `identifier-faces' due to the latter being also used for
+                     ;; initial scanning, so `font-lock-variable-use-face' being
+                     ;; there would be an overhead with no benefit.
+                     (eq curr-face 'font-lock-variable-use-face)))
                   (let ((flface-prop (get-text-property (point) 'font-lock-face)))
                     (and flface-prop (memq flface-prop identifier-faces))))
               (if (and (looking-back identifier-context-re (line-beginning-position))
