@@ -684,7 +684,7 @@ mode. This variable memoizes the result of the declaration scan function.")
   (color-identifiers:refontify))
 
 ;;;###autoload
-(define-global-minor-mode global-color-identifiers-mode
+(define-globalized-minor-mode global-color-identifiers-mode
   color-identifiers-mode color-identifiers-mode-maybe)
 
 (defun color-identifiers:attribute-luminance (attribute)
