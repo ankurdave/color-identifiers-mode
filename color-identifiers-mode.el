@@ -777,10 +777,11 @@ be colored."
 
 (defun color-identifiers:scan-identifiers (fn limit)
   "Run FN on all candidate identifiers from point up to LIMIT.
-Candidate identifiers are defined by
-`color-identifiers:modes-alist'. Declaration scan functions are
-not applied. If supplied, iteration only continues if CONTINUE-P
-evaluates to true."
+
+Basically, this is the function that highlights all identifiers, with
+highlight being done by applying FN.
+
+Candidate identifiers are defined by `color-identifiers:modes-alist'."
   (let ((identifier-context-re (nth 1 color-identifiers:colorize-behavior))
         (identifier-re (nth 2 color-identifiers:colorize-behavior))
         (identifier-faces (color-identifiers:curr-identifier-faces))
