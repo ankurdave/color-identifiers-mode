@@ -811,8 +811,7 @@ evaluates to true."
             (hex (color-identifiers:color-identifier identifier)))
        (when hex
          (let ((face-spec (append `(:foreground ,hex) color-identifiers:extra-face-attributes)))
-           (put-text-property start end 'face face-spec)
-           (put-text-property start end 'color-identifiers:fontified t)))))
+           (add-text-properties start end `(face ,face-spec color-identifiers:fontified t))))))
      limit))
 
 (defun color-identifiers-mode-maybe ()
