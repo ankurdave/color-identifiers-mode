@@ -499,20 +499,16 @@ incompatible with Emacs Lisp syntax, such as reader macros (#)."
     (delete-dups result)
     result))
 
-(color-identifiers:set-declaration-scan-fn
- 'clojure-mode 'color-identifiers:clojure-get-declarations)
-
-(add-to-list
- 'color-identifiers:modes-alist
- `(clojure-mode . (""
-                   "\\_<\\(\\(?:\\s_\\|\\sw\\)+\\)"
-                   (nil))))
-
-(add-to-list
- 'color-identifiers:modes-alist
- `(clojurescript-mode . (""
-                         "\\_<\\(\\(?:\\s_\\|\\sw\\)+\\)"
-                         (nil))))
+(dolist (mode '(clojure-mode
+                clojure-ts-mode
+                clojurescript-mode))
+  (color-identifiers:set-declaration-scan-fn
+   mode 'color-identifiers:clojure-get-declarations)
+  (add-to-list
+   'color-identifiers:modes-alist
+   `(,mode . (""
+              "\\_<\\(\\(?:\\s_\\|\\sw\\)+\\)"
+              (nil)))))
 
 (dolist (maj-mode '(tuareg-mode sml-mode))
   (add-to-list
@@ -822,7 +818,7 @@ Candidate identifiers are defined by `color-identifiers:modes-alist'."
        (when hex
          (let ((face-spec (append `(:foreground ,hex) color-identifiers:extra-face-attributes)))
            (add-text-properties start end `(face ,face-spec color-identifiers:fontified t))))))
-     limit))
+   limit))
 
 (defun color-identifiers-mode-maybe ()
   "Potentially enable `color-identifiers-mode' in the current buffer.
