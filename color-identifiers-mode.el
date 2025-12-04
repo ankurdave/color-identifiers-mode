@@ -337,6 +337,16 @@ arguments, loops (for .. in), or for comprehensions."
                   "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
                   (nil font-lock-variable-name-face tree-sitter-hl-face:variable))))
 
+;; Python Tree-sitter
+(color-identifiers:set-declaration-scan-fn
+ 'python-ts-mode 'color-identifiers:python-get-declarations)
+
+(add-to-list
+ 'color-identifiers:modes-alist
+ `(python-ts-mode . (,color-identifiers:re-not-inside-class-access
+                  "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
+                  (nil font-lock-variable-name-face tree-sitter-hl-face:variable))))
+
 ;; Emacs Lisp
 (defun color-identifiers:elisp-declarations-in-sexp (sexp result)
   "Extract a list of identifiers declared in SEXP. Mutates SEXP.
