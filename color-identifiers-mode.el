@@ -189,7 +189,7 @@ SCAN-FN."
           (setq next-change (next-property-change (point))))))
     (hash-table-keys result)))
 
-(dolist (maj-mode '(c-mode c++-mode java-mode rust-mode rust-ts-mode rustic-mode meson-mode typescript-mode cuda-mode tsx-ts-mode typescript-ts-mode))
+(dolist (maj-mode '(c-mode c++-mode java-mode rust-mode python-ts-mode rust-ts-mode rustic-mode meson-mode typescript-mode cuda-mode tsx-ts-mode typescript-ts-mode))
   (add-to-list
    'color-identifiers:modes-alist
    `(,maj-mode . (""
@@ -334,16 +334,6 @@ arguments, loops (for .. in), or for comprehensions."
 (add-to-list
  'color-identifiers:modes-alist
  `(python-mode . (,color-identifiers:re-not-inside-class-access
-                  "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
-                  (nil font-lock-variable-name-face tree-sitter-hl-face:variable))))
-
-;; Python Tree-sitter
-(color-identifiers:set-declaration-scan-fn
- 'python-ts-mode 'color-identifiers:python-get-declarations)
-
-(add-to-list
- 'color-identifiers:modes-alist
- `(python-ts-mode . (,color-identifiers:re-not-inside-class-access
                   "\\_<\\([a-zA-Z_$]\\(?:\\s_\\|\\sw\\)*\\)"
                   (nil font-lock-variable-name-face tree-sitter-hl-face:variable))))
 
